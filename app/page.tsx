@@ -35,7 +35,7 @@ const pageHtml = `<div class="top"><span>FUNEL® Industrial Water Monitoring & A
 export default function HomePage() {
   useEffect(() => {
     const defaults: Record<string, string> = {
-      heroImage: '/images/project-case.png',
+      heroImage: '/images/hero-bg.png',
       pimg1: '/images/online-analyzer.png',
       pimg2: '/images/sensors-probes.png',
       pimg3: '/images/monitoring-station.png',
