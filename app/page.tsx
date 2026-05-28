@@ -1,4 +1,4 @@
-"use client"
+use client"
 
 import { useEffect } from 'react'
 
@@ -30,81 +30,4 @@ const pageHtml = `<div class="top"><span>FUNEL® Industrial Water Monitoring & A
 <section id="contact" class="contact"><div class="split"><div><div class="tag">Contact</div><h2>Send your project requirements</h2><p>Tell us your water type, monitoring parameters, measuring range, installation site and communication requirements. We will help select analyzers and system configuration.</p><div class="contact-box"><p><b>WhatsApp:</b> <a href="https://wa.me/8615606523212" target="_blank">+86 15606523212</a></p><p><b>Email:</b> <a href="mailto:Claire@funel-sensor.com">Claire@funel-sensor.com</a></p><p><b>Alibaba:</b> <a href="https://sxfne1688.en.alibaba.com" target="_blank">FUNEL Alibaba International Store</a></p><p><b>LinkedIn:</b> <a href="https://linkedin.com/in/claire-chen-1a6629399" target="_blank">Claire Chen</a></p></div></div><form class="form" onsubmit="event.preventDefault();location.href='mailto:Claire@funel-sensor.com?subject=FUNEL Inquiry&body=Please tell us your water type, parameters and project requirements.'"><input placeholder="Your name / company"><input placeholder="Email / WhatsApp"><input placeholder="Country / market"><textarea rows="7" placeholder="Project requirements: parameters, water type, range, quantity, application..."></textarea><button class="btn primary" type="submit">Send Inquiry</button></form></div></section>
 <footer class="footer"><div><b>FUNEL®</b><br>Industrial Water Monitoring & Automation Solutions</div><div>© <span id="year"></span> FUNEL. All rights reserved.</div></footer>
 <div class="float"><a href="https://wa.me/8615606523212" target="_blank">WhatsApp</a><a href="mailto:Claire@funel-sensor.com">Email</a><button style="display:none" onclick="openAdmin()">Edit Images</button></div>
-<div id="adminModal" class="modal"><div class="panel"><h3>FUNEL Website Quick Editor</h3><div class="note">这是单文件 HTML 的“简易后台”：可以修改文字、图片 URL、产品链接，并保存在当前浏览器。正式上线后建议接入 WordPress / Webflow / Strapi CMS，后台可多人管理和上传图片。</div><div class="edit-grid" id="editorFields"></div><div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn primary" onclick="saveEdits()">Save Changes</button><button class="btn darkghost" onclick="resetEdits()">Reset</button><button class="btn darkghost" onclick="closeAdmin()">Close</button></div></div></div>`
-
-export default function HomePage() {
-  useEffect(() => {
-    const defaults: Record<string, string> = {
-      heroImage: '/images/hero-bg.png',
-      pimg1: '/images/online-analyzer.png',
-      pimg2: '/images/sensors-probes.png',
-      pimg3: '/images/monitoring-station.png',
-      caseImage: '/images/project-case.png',
-      aboutImage: '/images/factory-testing-packaging-shipment.png',
-      pimg4: '/images/muc-controller.png',
-      automationImage: '/images/plc-scada-system.png',
-    }
-
-    const bg = (id: string, url?: string) => {
-      const el = document.getElementById(id) as HTMLElement | null
-      if (el && url) el.style.backgroundImage = `url('${url}')`
-    }
-
-    window.loadEdits = () => {
-      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
-      Object.entries(defaults).forEach(([k, v]) => bg(k, data[k] || v))
-      document.querySelectorAll<HTMLElement>('[data-edit]').forEach((el) => {
-        const key = el.dataset.edit
-        if (key && data[key]) {
-          if (el.tagName === 'A') (el as HTMLAnchorElement).href = data[key]
-          else el.textContent = data[key]
-        }
-      })
-    }
-
-    const textKeys = ['heroEyebrow','heroTitle','heroDesc','p1Title','p1Desc','p1Link','p2Title','p2Desc','p2Link','p3Title','p3Desc','p3Link','p4Title','p4Desc','p4Link']
-    const imgKeys = ['heroImage','pimg1','pimg2','pimg3','pimg4','automationImage','caseImage','aboutImage']
-
-    window.openAdmin = () => {
-      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
-      const box = document.getElementById('editorFields')
-      if (!box) return
-      box.innerHTML = ''
-      textKeys.forEach((k) => {
-        const el = document.querySelector<HTMLElement>(`[data-edit="${k}"]`)
-        const value = data[k] || (el ? (el.tagName === 'A' ? (el as HTMLAnchorElement).href : el.textContent) : '') || ''
-        box.innerHTML += `<div class="field"><label>${k}</label><textarea rows="2" data-key="${k}">${value}</textarea></div>`
-      })
-      imgKeys.forEach((k) => {
-        box.innerHTML += `<div class="field"><label>${k} image URL</label><input data-key="${k}" value="${data[k] || defaults[k]}"></div>`
-      })
-      document.getElementById('adminModal')?.classList.add('open')
-    }
-
-    window.closeAdmin = () => document.getElementById('adminModal')?.classList.remove('open')
-
-    window.saveEdits = () => {
-      const data: Record<string, string> = {}
-      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('#editorFields [data-key]').forEach((i) => {
-        if (i.dataset.key) data[i.dataset.key] = i.value.trim()
-      })
-      localStorage.setItem('funelSiteEdits', JSON.stringify(data))
-      window.loadEdits()
-      window.closeAdmin()
-      alert('Saved in this browser. For public website backend, connect this page to a CMS.')
-    }
-
-    window.resetEdits = () => {
-      localStorage.removeItem('funelSiteEdits')
-      location.reload()
-    }
-
-    window.setLang = (v: string) => alert('Language module placeholder: ' + v + ' selected. Text can be translated and managed in the final CMS backend.')
-
-    const year = document.getElementById('year')
-    if (year) year.textContent = new Date().getFullYear().toString()
-    window.loadEdits()
-  }, [])
-
-  return <div dangerouslySetInnerHTML={{ __html: pageHtml }} />
-}
+<div id="adminModal" class="modal"><div class="panel"><h3>FUNEL Website Quick Editor</h3><div class="note">这是单文件 HTML 的“简易后台”：可以修改文字、图片 URL、产品链接，并保存在当前浏览器。正式上线后建议接入 WordPress / Webflow / Strapi CMS，后台可多人管理和上传图片。</div><div class="edit-grid" id="editorFields"></div><div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn primary" onclick="saveEdits()">Save Changes</button><button class="btn darkghost" onclick="resetEdits()">Reset</button><button class="btn darkghost" onclick="closeAdmin()">Close</button></div></div></div>
