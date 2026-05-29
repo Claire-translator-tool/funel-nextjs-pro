@@ -1,4 +1,4 @@
-use client"
+"use client"
 
 import { useEffect } from 'react'
 
@@ -14,7 +14,7 @@ declare global {
 }
 
 const pageHtml = `<div class="top"><span>FUNEL® Industrial Water Monitoring & Automation</span><span>WhatsApp: +86 15606523212 · Email: Claire@funel-sensor.com</span></div>
-<nav class="nav"><a class="brand" href="#home"><img id="logoImg" src="/images/logo.png" alt="FUNEL logo"><span>FUNEL®</span></a><div class="menu"><a href="#products">Products</a><a href="#solutions">Solutions</a><a href="#automation">Automation</a><a href="#projects">Projects</a><a href="#about">About</a><a href="#contact">Contact</a></div><div class="nav-actions"><select class="lang" onchange="setLang(this.value)"><option>English</option><option>Español</option><option>Русский</option><option>العربية</option><option>한국어</option></select><button class="admin-btn" style="display:none" onclick="openAdmin()">Edit</button><a class="btn primary" href="https://sxfne1688.en.alibaba.com" target="_blank">Alibaba Store</a></div></nav>
+<nav class="nav"><a class="brand" href="#home"><img id="logoImg" src="https://sc01.alicdn.com/kf/Abeefe2fc62fe493e9b8a2a7f7c9e5e36c.png" alt="FUNEL logo"><span>FUNEL®</span></a><div class="menu"><a href="#products">Products</a><a href="#solutions">Solutions</a><a href="#automation">Automation</a><a href="#projects">Projects</a><a href="#about">About</a><a href="#contact">Contact</a></div><div class="nav-actions"><select class="lang" onchange="setLang(this.value)"><option value="en">English</option><option value="es">Español</option><option value="ru">Русский</option><option value="ar">العربية</option><option value="ko">한국어</option></select><button class="admin-btn" style="display:none" onclick="openAdmin()">Edit</button><a class="btn primary" href="https://sxfne1688.en.alibaba.com" target="_blank">Alibaba Store</a></div></nav>
 <header id="home" class="hero"><div class="hero-text"><div class="eyebrow" data-edit="heroEyebrow">Engineered for water treatment projects</div><h1 data-edit="heroTitle">Industrial Water Monitoring & Process Automation Solutions</h1><p data-edit="heroDesc">FUNEL® supplies online water quality analyzers, digital sensors, PLC control cabinets and integrated monitoring systems for municipal water, wastewater, industrial process water and smart water projects.</p><div class="hero-actions"><a class="btn primary" href="#products">Explore Products</a><a class="btn ghost" href="#contact">Request Solution</a></div><div class="hero-stats"><div class="stat"><b>Online</b><br>Water Analyzers</div><div class="stat"><b>PLC</b><br>Automation Systems</div><div class="stat"><b>OEM</b><br>Project Support</div></div></div><div class="hero-media"><div class="hero-card"><div id="heroImage" class="hero-img"></div><div class="hero-card-body"><div class="mini"><b>Water Quality</b><br>pH, ORP, DO, turbidity, COD, ammonia, chlorine</div><div class="mini"><b>System Integration</b><br>Sampling, sensors, cabinet, data platform, remote monitoring</div></div></div></div></header>
 <section id="products"><div class="section-head"><div class="tag">Product Center</div><h2>Online analyzers, sensors and monitoring systems</h2><p>Built for project-based water monitoring, system integration and industrial process control.</p></div><div class="grid4">
 <div class="card product-card"><div id="pimg1" class="card-img" style="background-image:url('/images/online-analyzer.png')"></div><div class="card-body"><span class="pill">Water Quality Analyzer</span><h3 data-edit="p1Title">Online Water Quality Analyzers</h3><p data-edit="p1Desc">pH/ORP, dissolved oxygen, turbidity, suspended solids, conductivity, residual chlorine, COD, ammonia nitrogen and total phosphorus analyzers.</p><a class="link-slot" data-edit="p1Link" href="#contact">Add product detail link →</a></div></div>
@@ -30,4 +30,102 @@ const pageHtml = `<div class="top"><span>FUNEL® Industrial Water Monitoring & A
 <section id="contact" class="contact"><div class="split"><div><div class="tag">Contact</div><h2>Send your project requirements</h2><p>Tell us your water type, monitoring parameters, measuring range, installation site and communication requirements. We will help select analyzers and system configuration.</p><div class="contact-box"><p><b>WhatsApp:</b> <a href="https://wa.me/8615606523212" target="_blank">+86 15606523212</a></p><p><b>Email:</b> <a href="mailto:Claire@funel-sensor.com">Claire@funel-sensor.com</a></p><p><b>Alibaba:</b> <a href="https://sxfne1688.en.alibaba.com" target="_blank">FUNEL Alibaba International Store</a></p><p><b>LinkedIn:</b> <a href="https://linkedin.com/in/claire-chen-1a6629399" target="_blank">Claire Chen</a></p></div></div><form class="form" onsubmit="event.preventDefault();location.href='mailto:Claire@funel-sensor.com?subject=FUNEL Inquiry&body=Please tell us your water type, parameters and project requirements.'"><input placeholder="Your name / company"><input placeholder="Email / WhatsApp"><input placeholder="Country / market"><textarea rows="7" placeholder="Project requirements: parameters, water type, range, quantity, application..."></textarea><button class="btn primary" type="submit">Send Inquiry</button></form></div></section>
 <footer class="footer"><div><b>FUNEL®</b><br>Industrial Water Monitoring & Automation Solutions</div><div>© <span id="year"></span> FUNEL. All rights reserved.</div></footer>
 <div class="float"><a href="https://wa.me/8615606523212" target="_blank">WhatsApp</a><a href="mailto:Claire@funel-sensor.com">Email</a><button style="display:none" onclick="openAdmin()">Edit Images</button></div>
-<div id="adminModal" class="modal"><div class="panel"><h3>FUNEL Website Quick Editor</h3><div class="note">这是单文件 HTML 的“简易后台”：可以修改文字、图片 URL、产品链接，并保存在当前浏览器。正式上线后建议接入 WordPress / Webflow / Strapi CMS，后台可多人管理和上传图片。</div><div class="edit-grid" id="editorFields"></div><div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn primary" onclick="saveEdits()">Save Changes</button><button class="btn darkghost" onclick="resetEdits()">Reset</button><button class="btn darkghost" onclick="closeAdmin()">Close</button></div></div></div>
+<div id="adminModal" class="modal"><div class="panel"><h3>FUNEL Website Quick Editor</h3><div class="note">这是单文件 HTML 的“简易后台”：可以修改文字、图片 URL、产品链接，并保存在当前浏览器。正式上线后建议接入 WordPress / Webflow / Strapi CMS，后台可多人管理和上传图片。</div><div class="edit-grid" id="editorFields"></div><div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn primary" onclick="saveEdits()">Save Changes</button><button class="btn darkghost" onclick="resetEdits()">Reset</button><button class="btn darkghost" onclick="closeAdmin()">Close</button></div></div></div><div id="google_translate_element" style="display:none"></div>`
+
+export default function HomePage() {
+  useEffect(() => {
+    const defaults: Record<string, string> = {
+      heroImage: 'https://sc01.alicdn.com/kf/A11e5f71d92044394adbceea5ff5434735.png',
+      pimg1: 'https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png',
+      pimg2: 'https://sc01.alicdn.com/kf/Ae5c0632e9c5f443fa1c6e6590e009f2cD.png',
+      pimg3: 'https://sc01.alicdn.com/kf/Aa3b21199cd064c9fa3fd46e9d5235d134.png',
+      caseImage: 'https://sc01.alicdn.com/kf/Ad154a1057360439da86f4a1c2213e447K.png',
+      aboutImage: 'https://sc01.alicdn.com/kf/A407492db480e47b9b4c242860e078526J.png',
+      pimg4: 'https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png',
+      automationImage: 'https://sc01.alicdn.com/kf/Ab03188199d8b4800bdf667dd81ec73ecH.png',
+    }
+
+    const bg = (id: string, url?: string) => {
+      const el = document.getElementById(id) as HTMLElement | null
+      if (el && url) el.style.backgroundImage = `url('${url}')`
+    }
+
+    window.loadEdits = () => {
+      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
+      Object.entries(defaults).forEach(([k, v]) => bg(k, data[k] || v))
+      document.querySelectorAll<HTMLElement>('[data-edit]').forEach((el) => {
+        const key = el.dataset.edit
+        if (key && data[key]) {
+          if (el.tagName === 'A') (el as HTMLAnchorElement).href = data[key]
+          else el.textContent = data[key]
+        }
+      })
+    }
+
+    const textKeys = ['heroEyebrow','heroTitle','heroDesc','p1Title','p1Desc','p1Link','p2Title','p2Desc','p2Link','p3Title','p3Desc','p3Link','p4Title','p4Desc','p4Link']
+    const imgKeys = ['heroImage','pimg1','pimg2','pimg3','pimg4','automationImage','caseImage','aboutImage']
+
+    window.openAdmin = () => {
+      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
+      const box = document.getElementById('editorFields')
+      if (!box) return
+      box.innerHTML = ''
+      textKeys.forEach((k) => {
+        const el = document.querySelector<HTMLElement>(`[data-edit="${k}"]`)
+        const value = data[k] || (el ? (el.tagName === 'A' ? (el as HTMLAnchorElement).href : el.textContent) : '') || ''
+        box.innerHTML += `<div class="field"><label>${k}</label><textarea rows="2" data-key="${k}">${value}</textarea></div>`
+      })
+      imgKeys.forEach((k) => {
+        box.innerHTML += `<div class="field"><label>${k} image URL</label><input data-key="${k}" value="${data[k] || defaults[k]}"></div>`
+      })
+      document.getElementById('adminModal')?.classList.add('open')
+    }
+
+    window.closeAdmin = () => document.getElementById('adminModal')?.classList.remove('open')
+
+    window.saveEdits = () => {
+      const data: Record<string, string> = {}
+      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('#editorFields [data-key]').forEach((i) => {
+        if (i.dataset.key) data[i.dataset.key] = i.value.trim()
+      })
+      localStorage.setItem('funelSiteEdits', JSON.stringify(data))
+      window.loadEdits()
+      window.closeAdmin()
+      alert('Saved in this browser. For public website backend, connect this page to a CMS.')
+    }
+
+    window.resetEdits = () => {
+      localStorage.removeItem('funelSiteEdits')
+      location.reload()
+    }
+
+    window.setLang = (lang: string) => {
+      if (lang === 'en') {
+        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.funelsensor.com; path=/;'
+      } else {
+        document.cookie = `googtrans=/en/${lang}; path=/`
+        document.cookie = `googtrans=/en/${lang}; domain=.funelsensor.com; path=/`
+      }
+      location.reload()
+    }
+
+    // Initialize Google Translate
+    const gtScript = document.createElement('script')
+    gtScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
+    document.body.appendChild(gtScript)
+    ;(window as any).googleTranslateElementInit = () => {
+      new (window as any).google.translate.TranslateElement({
+        pageLanguage: 'en',
+        layout: (window as any).google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element')
+    }
+
+    const year = document.getElementById('year')
+    if (year) year.textContent = new Date().getFullYear().toString()
+    window.loadEdits()
+  }, [])
+
+  return <div dangerouslySetInnerHTML={{ __html: pageHtml }} />
+}
