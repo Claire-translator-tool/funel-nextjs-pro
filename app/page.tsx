@@ -1,131 +1,372 @@
-"use client"
+"use client";
 
-import { useEffect } from 'react'
+import React, { useEffect, useState } from "react";
+import { 
+  Globe, 
+  MessageCircle, 
+  CheckCircle2, 
+  ArrowRight, 
+  ShieldCheck, 
+  Settings, 
+  Waves, 
+  Zap, 
+  Package, 
+  Factory 
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-declare global {
-  interface Window {
-    openAdmin: () => void
-    closeAdmin: () => void
-    saveEdits: () => void
-    resetEdits: () => void
-    setLang: (v: string) => void
-    loadEdits: () => void
-  }
-}
+// --- Components ---
 
-const pageHtml = `<div class="top"><span>FUNEL® Industrial Water Monitoring & Automation</span><span>WhatsApp: +86 15606523212 · Email: Claire@funel-sensor.com</span></div>
-<nav class="nav"><a class="brand" href="#home"><img id="logoImg" src="https://sc01.alicdn.com/kf/Abeefe2fc62fe493e9b8a2a7f7c9e5e36c.png" alt="FUNEL logo"><span>FUNEL®</span></a><div class="menu"><a href="#products">Products</a><a href="#solutions">Solutions</a><a href="#automation">Automation</a><a href="#projects">Projects</a><a href="#about">About</a><a href="#contact">Contact</a></div><div class="nav-actions"><select class="lang" onchange="setLang(this.value)"><option value="en">English</option><option value="es">Español</option><option value="ru">Русский</option><option value="ar">العربية</option><option value="ko">한국어</option></select><button class="admin-btn" style="display:none" onclick="openAdmin()">Edit</button><a class="btn primary" href="https://sxfne1688.en.alibaba.com" target="_blank">Alibaba Store</a></div></nav>
-<header id="home" class="hero"><div class="hero-text"><div class="eyebrow" data-edit="heroEyebrow">Engineered for water treatment projects</div><h1 data-edit="heroTitle">Industrial Water Monitoring & Process Automation Solutions</h1><p data-edit="heroDesc">FUNEL® supplies online water quality analyzers, digital sensors, PLC control cabinets and integrated monitoring systems for municipal water, wastewater, industrial process water and smart water projects.</p><div class="hero-actions"><a class="btn primary" href="#products">Explore Products</a><a class="btn ghost" href="#contact">Request Solution</a></div><div class="hero-stats"><div class="stat"><b>Online</b><br>Water Analyzers</div><div class="stat"><b>PLC</b><br>Automation Systems</div><div class="stat"><b>OEM</b><br>Project Support</div></div></div><div class="hero-media"><div class="hero-card"><div id="heroImage" class="hero-img"></div><div class="hero-card-body"><div class="mini"><b>Water Quality</b><br>pH, ORP, DO, turbidity, COD, ammonia, chlorine</div><div class="mini"><b>System Integration</b><br>Sampling, sensors, cabinet, data platform, remote monitoring</div></div></div></div></header>
-<section id="products"><div class="section-head"><div class="tag">Product Center</div><h2>Online analyzers, sensors and monitoring systems</h2><p>Built for project-based water monitoring, system integration and industrial process control.</p></div><div class="grid4">
-<div class="card product-card"><div id="pimg1" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png')"></div><div class="card-body"><span class="pill">Water Quality Analyzer</span><h3 data-edit="p1Title">Online Water Quality Analyzers</h3><p data-edit="p1Desc">pH/ORP, dissolved oxygen, turbidity, suspended solids, conductivity, residual chlorine, COD, ammonia nitrogen and total phosphorus analyzers.</p><a class="link-slot" data-edit="p1Link" href="#contact">Add product detail link →</a></div></div>
-<div class="card product-card"><div id="pimg2" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/Ae5c0632e9c5f443fa1c6e6590e009f2cD.png')"></div><div class="card-body"><span class="pill">Digital Sensors</span><h3 data-edit="p2Title">Industrial Sensors & Transmitters</h3><p data-edit="p2Desc">Digital probes, controllers, transmitters and accessories for online water analysis and industrial field installation.</p><a class="link-slot" data-edit="p2Link" href="#contact">Add product detail link →</a></div></div>
-<div class="card product-card"><div id="pimg3" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/Aa3b21199cd064c9fa3fd46e9d5235d134.png')"></div><div class="card-body"><span class="pill">Integrated System</span><h3 data-edit="p3Title">Online Monitoring Stations</h3><p data-edit="p3Desc">Integrated sampling, pretreatment, online analysis, data acquisition and enclosure solutions for water quality monitoring stations.</p><a class="link-slot" data-edit="p3Link" href="#contact">Add product detail link →</a></div></div>
+const TopBar = () => (
+  <div className="bg-black text-white py-2 px-6 flex justify-between items-center text-xs font-medium tracking-wide">
+    <div className="flex gap-4 items-center opacity-90">
+      <div className="flex items-center gap-1">
+        <ShieldCheck size={14} className="text-accent" />
+        <span>ISO 9001 CERTIFIED</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <CheckCircle2 size={14} className="text-accent" />
+        <span>CE COMPLIANT</span>
+      </div>
+    </div>
+    <div className="flex gap-6 items-center">
+      <div className="flex items-center gap-2">
+        <Globe size={14} />
+        <select className="bg-transparent border-none focus:ring-0 cursor-pointer">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="pt">Português</option>
+          <option value="ru">Русский</option>
+        </select>
+      </div>
+      <a href="https://wa.me/8615606523212" className="hover:text-accent transition-colors flex items-center gap-1">
+        <MessageCircle size={14} />
+        <span>WhatsApp: +86 15606523212</span>
+      </a>
+    </div>
+  </div>
+);
 
-<div class="card product-card"><div id="pimg4" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png')"></div><div class="card-body"><span class="pill">Multiparameter Controller</span><h3 data-edit="p4Title">MUC Controllers & Transmitters</h3><p data-edit="p4Desc">Multi-parameter controllers and transmitters for pH, ORP, conductivity, turbidity, DO and integrated online monitoring.</p><a class="link-slot" data-edit="p4Link" href="#contact">Add product detail link →</a></div></div>
-</div></section>
-<section id="solutions" class="solutions"><div class="section-head"><div class="tag">Applications</div><h2>Solutions by water treatment scenario</h2><p>FUNEL® presents products by process and application, so engineers can quickly match instruments to monitoring points.</p></div><div class="grid3"><div class="solution"><h3>Municipal Water</h3><p>Intake water, sedimentation, filtration, disinfection and clear water monitoring.</p></div><div class="solution"><h3>Wastewater Treatment</h3><p>Inlet, aeration tank, sludge concentration, final effluent and discharge compliance.</p></div><div class="solution"><h3>Industrial Process Water</h3><p>Cooling water, boiler water, chemical dosing, recycling water and discharge monitoring.</p></div><div class="solution"><h3>Surface Water & Environment</h3><p>River, lake, groundwater and environmental station applications.</p></div><div class="solution"><h3>Aquaculture</h3><p>DO, pH, temperature, ammonia and water safety monitoring for farms.</p></div><div class="solution"><h3>Chemical & Manufacturing</h3><p>Online analysis and automation control for process safety and stable production.</p></div></div></section>
-<section id="automation" class="dark"><div class="section-head"><div class="tag">Automation Integration</div><h2>From instrument to complete control system</h2><p>For overseas EPC contractors, integrators and distributors, FUNEL® can support complete monitoring architecture from field sensor to PLC/SCADA data layer.</p></div><div class="card" style="max-width:980px;margin:0 auto 32px;background:#fff;border:0"><div id="automationImage" class="card-img" style="height:430px;background-image:url('https://sc01.alicdn.com/kf/Ab03188199d8b4800bdf667dd81ec73ecH.png')"></div><div class="card-body"><span class="pill">PLC / SCADA</span><h3>Remote Monitoring Architecture</h3><p>System network, PLC/DCS control and SCADA screen display for water monitoring and automation projects.</p></div></div><div class="process"><div class="step"><span>1</span><h3>Sampling</h3><p>Sampling point design and pretreatment selection.</p></div><div class="step"><span>2</span><h3>Analysis</h3><p>Online analyzer, sensor and controller configuration.</p></div><div class="step"><span>3</span><h3>Cabinet</h3><p>PLC cabinet, power distribution and field wiring.</p></div><div class="step"><span>4</span><h3>Data</h3><p>RS485/4-20mA, gateway, cloud and SCADA integration.</p></div><div class="step"><span>5</span><h3>Service</h3><p>OEM support, commissioning guidance and spare parts.</p></div></div></section>
-<section id="projects"><div class="section-head"><div class="tag">Project Experience</div><h2>Engineering-style project presentation</h2><p>Use this area to upload your real water plant, control cabinet, installation and commissioning photos.</p></div><div class="case"><div id="caseImage" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/Ad154a1057360439da86f4a1c2213e447K.png')"></div><div class="case-list"><div class="case-item"><h3>Water Treatment Plant Monitoring</h3><p>Multi-parameter online monitoring for inlet, process and outlet water quality.</p></div><div class="case-item"><h3>Wastewater Automation Control</h3><p>PLC cabinet, field instruments and process data acquisition for stable operation.</p></div><div class="case-item"><h3>Industrial Discharge Monitoring</h3><p>Integrated station for COD, ammonia, pH, flow and compliance monitoring.</p></div></div></div></section>
-<section id="about" class="about"><div class="split"><div><div class="tag">About FUNEL®</div><h2>Water analysis instruments with engineering capability</h2><p>FUNEL® focuses on industrial online water quality analysis, sensors, automation control and integrated monitoring systems. We serve water treatment companies, EPC contractors, system integrators, distributors and OEM partners.</p><p>Our website is structured around product families, process applications and project solutions, helping overseas customers understand both product supply and system integration ability.</p><div class="certs"><div class="cert">OEM / ODM</div><div class="cert">Technical Support</div><div class="cert">Project Integration</div><div class="cert">Global Inquiry</div></div></div><div class="card"><div id="aboutImage" class="card-img" style="height:430px;background-image:url('https://sc01.alicdn.com/kf/A407492db480e47b9b4c242860e078526J.png')"></div></div></div></section>
-<section id="contact" class="contact"><div class="split"><div><div class="tag">Contact</div><h2>Send your project requirements</h2><p>Tell us your water type, monitoring parameters, measuring range, installation site and communication requirements. We will help select analyzers and system configuration.</p><div class="contact-box"><p><b>WhatsApp:</b> <a href="https://wa.me/8615606523212" target="_blank">+86 15606523212</a></p><p><b>Email:</b> <a href="mailto:Claire@funel-sensor.com">Claire@funel-sensor.com</a></p><p><b>Alibaba:</b> <a href="https://sxfne1688.en.alibaba.com" target="_blank">FUNEL Alibaba International Store</a></p><p><b>LinkedIn:</b> <a href="https://linkedin.com/in/claire-chen-1a6629399" target="_blank">Claire Chen</a></p></div></div><form class="form" onsubmit="event.preventDefault();location.href='mailto:Claire@funel-sensor.com?subject=FUNEL Inquiry&body=Please tell us your water type, parameters and project requirements.'"><input placeholder="Your name / company"><input placeholder="Email / WhatsApp"><input placeholder="Country / market"><textarea rows="7" placeholder="Project requirements: parameters, water type, range, quantity, application..."></textarea><button class="btn primary" type="submit">Send Inquiry</button></form></div></section>
-<footer class="footer"><div><b>FUNEL®</b><br>Industrial Water Monitoring & Automation Solutions</div><div>© <span id="year"></span> FUNEL. All rights reserved.</div></footer>
-<div class="float"><a href="https://wa.me/8615606523212" target="_blank">WhatsApp</a><a href="mailto:Claire@funel-sensor.com">Email</a><button style="display:none" onclick="openAdmin()">Edit Images</button></div>
-<div id="adminModal" class="modal"><div class="panel"><h3>FUNEL Website Quick Editor</h3><div class="note">这是单文件 HTML 的“简易后台”：可以修改文字、图片 URL、产品链接，并保存在当前浏览器。正式上线后建议接入 WordPress / Webflow / Strapi CMS，后台可多人管理和上传图片。</div><div class="edit-grid" id="editorFields"></div><div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn primary" onclick="saveEdits()">Save Changes</button><button class="btn darkghost" onclick="resetEdits()">Reset</button><button class="btn darkghost" onclick="closeAdmin()">Close</button></div></div></div><div id="google_translate_element" style="display:none"></div>`
+const Nav = () => (
+  <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center">
+    <a href="#" className="flex items-center gap-3">
+      <img 
+        src="https://sc01.alicdn.com/kf/Abeefe2fc62fe493e9b8a2a7f7c9e5e36c.png" 
+        alt="FUNEL" 
+        className="h-10 w-auto"
+      />
+      <span className="text-2xl font-black text-blue-900 tracking-tighter">FUNEL®</span>
+    </a>
+    <div className="hidden md:flex gap-8 text-sm font-bold text-gray-700 uppercase tracking-widest">
+      <a href="#products" className="hover:text-primary transition-colors">Products</a>
+      <a href="#solutions" className="hover:text-primary transition-colors">Solutions</a>
+      <a href="#automation" className="hover:text-primary transition-colors">Automation</a>
+      <a href="#about" className="hover:text-primary transition-colors">About</a>
+    </div>
+    <div className="flex items-center gap-4">
+      <Button variant="outline" className="hidden lg:flex border-primary text-primary font-bold rounded-full">
+        Technical Docs
+      </Button>
+      <Button className="bg-primary hover:bg-primary/90 text-white font-bold rounded-full px-6 shadow-lg shadow-primary/20">
+        Inquiry Now
+      </Button>
+    </div>
+  </nav>
+);
+
+const Hero = () => (
+  <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-[#08120f]">
+    {/* Background Image with Overlay */}
+    <div 
+      className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] hover:scale-110"
+      style={{ 
+        backgroundImage: "url('https://sc01.alicdn.com/kf/A11e5f71d92044394adbceea5ff5434735.png')",
+        filter: "brightness(0.4)"
+      }}
+    />
+    
+    <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center pt-12 pb-20">
+      <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000">
+        <div className="inline-block px-4 py-1.5 bg-primary/20 border border-primary/30 backdrop-blur-sm rounded-full text-accent text-sm font-black tracking-[0.2em] uppercase">
+          World-Class Instrumentation
+        </div>
+        <h1 className="text-5xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
+          Reliable Water <br/>
+          <span className="text-primary-foreground">Monitoring</span> <br/>
+          Systems.
+        </h1>
+        <p className="text-xl text-gray-300 max-w-lg leading-relaxed font-medium">
+          Supplying high-precision online analyzers, digital probes, and integrated SCADA systems for global municipal and industrial projects.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <Button size="lg" className="bg-primary hover:bg-primary/90 text-white h-14 px-8 text-lg font-bold rounded-xl">
+            Explore Analyzers <ArrowRight className="ml-2" />
+          </Button>
+          <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 border-white/20 text-white h-14 px-8 text-lg font-bold rounded-xl backdrop-blur-md">
+            Request Quote
+          </Button>
+        </div>
+      </div>
+
+      <div className="hidden lg:block animate-in fade-in zoom-in duration-1000 delay-300">
+        <div className="bg-white/95 backdrop-blur-xl p-8 rounded-[40px] shadow-2xl border border-white/20 transform rotate-2 hover:rotate-0 transition-transform duration-700">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+              <span className="font-bold text-gray-400 uppercase tracking-widest text-xs">Live Monitoring Data</span>
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              {[
+                { label: "COD Value", val: "42.5", unit: "mg/L" },
+                { label: "Turbidity", val: "0.12", unit: "NTU" },
+                { label: "pH Level", val: "7.42", unit: "pH" },
+                { label: "Temp", val: "24.5", unit: "°C" },
+              ].map((item, i) => (
+                <div key={i} className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                  <p className="text-xs font-bold text-gray-500 mb-1">{item.label}</p>
+                  <p className="text-2xl font-black text-primary">{item.val} <span className="text-sm font-bold text-gray-400">{item.unit}</span></p>
+                </div>
+              ))}
+            </div>
+            <div className="pt-2">
+              <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
+                <p className="text-sm font-bold text-primary flex items-center gap-2">
+                  <Zap size={16} /> System Health: Optimal
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const TrustStats = () => (
+  <div className="bg-white py-12 border-b border-gray-100">
+    <div className="container mx-auto px-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {[
+          { icon: Factory, label: "15+ Years", sub: "Technical Exp" },
+          { icon: Globe, label: "50+ Countries", sub: "Global Shipping" },
+          { icon: Settings, label: "1000+ Projects", sub: "Annual Support" },
+          { icon: MessageCircle, label: "24/7", sub: "Expert Response" },
+        ].map((stat, i) => (
+          <div key={i} className="flex flex-col items-center text-center space-y-2 group">
+            <div className="text-primary group-hover:scale-110 transition-transform duration-300">
+              <stat.icon size={32} />
+            </div>
+            <p className="text-2xl font-black text-gray-900">{stat.label}</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{stat.sub}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const Categories = () => (
+  <section id="products" className="py-24 bg-[#f9fbfa]">
+    <div className="container mx-auto px-6">
+      <div className="text-center mb-16 space-y-4">
+        <div className="text-primary font-black tracking-widest uppercase text-sm">Product Families</div>
+        <h2 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">Precise Solutions for Every Point</h2>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8 mb-8">
+        {/* Large Split Cards - Zhixin Style */}
+        <div className="relative group rounded-[40px] overflow-hidden bg-white shadow-xl hover:shadow-2xl transition-all duration-500 h-[500px]">
+          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-[10s] group-hover:scale-110" 
+            style={{ backgroundImage: "url('https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png')" }} 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute bottom-10 left-10 text-white space-y-4">
+            <h3 className="text-4xl font-black">Online Water Analyzers</h3>
+            <p className="text-gray-200 text-lg max-w-sm font-medium">COD, Ammonia, TP, Chlorine, and Multi-parameter stations for high-end projects.</p>
+            <Button className="bg-white text-primary hover:bg-accent hover:text-white font-black px-8 h-12 rounded-full transition-colors duration-300">
+              View All Analyzers
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-rows-2 gap-8">
+          <div className="relative group rounded-[40px] overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-500">
+            <div className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-1000" 
+              style={{ backgroundImage: "url('https://sc01.alicdn.com/kf/Ae5c0632e9c5f443fa1c6e6590e009f2cD.png')" }} 
+            />
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500" />
+            <div className="absolute inset-0 flex items-center justify-center text-white text-center p-6">
+              <div>
+                <h3 className="text-2xl font-black mb-2">Digital Probes & Sensors</h3>
+                <p className="text-sm font-bold text-gray-200 mb-4 opacity-0 group-hover:opacity-100 transition-opacity">Precision digital sensing with RS485/Modbus</p>
+                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-primary font-bold rounded-full">
+                  Browse Sensors
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="relative group rounded-[40px] overflow-hidden bg-white shadow-lg hover:shadow-xl transition-all duration-500">
+            <div className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-1000" 
+              style={{ backgroundImage: "url('https://sc01.alicdn.com/kf/Aa3b21199cd064c9fa3fd46e9d5235d134.png')" }} 
+            />
+             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500" />
+            <div className="absolute inset-0 flex items-center justify-center text-white text-center p-6">
+              <div>
+                <h3 className="text-2xl font-black mb-2">Integrated Monitoring Boxes</h3>
+                <p className="text-sm font-bold text-gray-200 mb-4 opacity-0 group-hover:opacity-100 transition-opacity">Plug-and-play cabinets for field monitoring</p>
+                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-primary font-bold rounded-full">
+                  Explore Systems
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const SolutionsGrid = () => (
+  <section id="solutions" className="py-24 bg-white">
+    <div className="container mx-auto px-6">
+      <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="space-y-8">
+          <div className="text-primary font-black tracking-widest uppercase text-sm">Industrial Expertise</div>
+          <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">Solutions Built for Water Reality</h2>
+          <div className="grid gap-6">
+            {[
+              { title: "Municipal Water Supply", desc: "Reliable monitoring for intake, process, and clear water discharge.", icon: Waves },
+              { title: "Wastewater Treatment", desc: "Tough sensors for aeration tanks and final discharge compliance.", icon: Zap },
+              { title: "Aquaculture Safety", desc: "Real-time DO and Ammonia monitoring for high-density fish farms.", icon: ShieldCheck },
+              { title: "Environmental Monitoring", desc: "Autonomous stations for river, lake, and surface water protection.", icon: Globe },
+            ].map((item, i) => (
+              <div key={i} className="flex gap-6 p-6 rounded-3xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all group">
+                <div className="text-primary group-hover:scale-125 transition-transform duration-300 shrink-0">
+                  <item.icon size={24} />
+                </div>
+                <div>
+                  <h4 className="text-lg font-black text-gray-900 mb-1">{item.title}</h4>
+                  <p className="text-gray-500 text-sm font-medium">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="relative rounded-[50px] overflow-hidden shadow-2xl h-[600px]">
+          <img 
+            src="https://sc01.alicdn.com/kf/Ab03188199d8b4800bdf667dd81ec73ecH.png" 
+            alt="PLC SCADA System" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/40 to-transparent" />
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const AboutCompact = () => (
+  <section id="about" className="py-24 bg-primary text-white overflow-hidden relative">
+    <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+      <div className="relative z-10 space-y-8">
+        <h2 className="text-4xl lg:text-5xl font-black leading-tight">Project-Ready Engineering Capability</h2>
+        <p className="text-primary-foreground/80 text-xl font-medium">
+          More than just an instrument supplier. FUNEL® provides full-cycle support from sampling point design to PLC control and global logistics.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          {["OEM/ODM Design", "Technical Support", "System Integration", "Rapid Shipment"].map((tag, i) => (
+            <div key={i} className="flex items-center gap-2 bg-white/10 p-4 rounded-2xl border border-white/10 font-bold">
+              <CheckCircle2 size={20} className="text-accent" />
+              <span>{tag}</span>
+            </div>
+          ))}
+        </div>
+        <Button className="bg-accent hover:bg-accent/90 text-white font-black px-10 h-14 rounded-2xl text-lg">
+          Our Company Story
+        </Button>
+      </div>
+      <div className="relative">
+        <div className="absolute -inset-24 bg-accent/20 rounded-full blur-[120px]" />
+        <img 
+          src="https://sc01.alicdn.com/kf/A407492db480e47b9b4c242860e078526J.png" 
+          alt="Factory" 
+          className="relative rounded-3xl shadow-2xl border border-white/10 transform -rotate-3 hover:rotate-0 transition-transform duration-700"
+        />
+      </div>
+    </div>
+  </section>
+);
+
+const Footer = () => (
+  <footer className="bg-[#050a09] pt-20 pb-10 text-gray-400 px-6">
+    <div className="container mx-auto grid md:grid-cols-4 gap-12 mb-16">
+      <div className="col-span-2 space-y-6">
+        <img 
+          src="https://sc01.alicdn.com/kf/Abeefe2fc62fe493e9b8a2a7f7c9e5e36c.png" 
+          alt="FUNEL" 
+          className="h-12 w-auto brightness-200 grayscale"
+        />
+        <p className="max-w-md font-medium">
+          FUNEL® is a specialized manufacturer and integrator of industrial online water quality analysis systems. We bridge the gap between high-precision instruments and real-world project automation.
+        </p>
+      </div>
+      <div className="space-y-4">
+        <h4 className="text-white font-black uppercase tracking-widest text-sm">Quick Links</h4>
+        <div className="flex flex-col gap-2 font-bold text-sm">
+          <a href="#" className="hover:text-white">Alibaba Store</a>
+          <a href="#" className="hover:text-white">LinkedIn Profile</a>
+          <a href="#" className="hover:text-white">Product Catalog</a>
+          <a href="#" className="hover:text-white">Support Center</a>
+        </div>
+      </div>
+      <div className="space-y-4">
+        <h4 className="text-white font-black uppercase tracking-widest text-sm">Contact Info</h4>
+        <div className="flex flex-col gap-2 font-bold text-sm text-gray-200">
+          <p>WhatsApp: +86 15606523212</p>
+          <p>Email: Claire@funel-sensor.com</p>
+          <p>Hangzhou, China</p>
+        </div>
+      </div>
+    </div>
+    <div className="container mx-auto pt-8 border-t border-white/5 text-center text-xs font-bold uppercase tracking-widest opacity-40">
+      © {new Date().getFullYear()} FUNEL SENSOR. All Rights Reserved.
+    </div>
+  </footer>
+);
 
 export default function HomePage() {
-  useEffect(() => {
-    const defaults: Record<string, string> = {
-      heroImage: 'https://sc01.alicdn.com/kf/A11e5f71d92044394adbceea5ff5434735.png',
-      pimg1: 'https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png',
-      pimg2: 'https://sc01.alicdn.com/kf/Ae5c0632e9c5f443fa1c6e6590e009f2cD.png',
-      pimg3: 'https://sc01.alicdn.com/kf/Aa3b21199cd064c9fa3fd46e9d5235d134.png',
-      caseImage: 'https://sc01.alicdn.com/kf/Ad154a1057360439da86f4a1c2213e447K.png',
-      aboutImage: 'https://sc01.alicdn.com/kf/A407492db480e47b9b4c242860e078526J.png',
-      pimg4: 'https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png',
-      automationImage: 'https://sc01.alicdn.com/kf/Ab03188199d8b4800bdf667dd81ec73ecH.png',
-    }
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-    const bg = (id: string, url?: string) => {
-      const el = document.getElementById(id) as HTMLElement | null
-      if (el && url) el.style.backgroundImage = `url('${url}')`
-    }
+  if (!mounted) return null;
 
-    window.loadEdits = () => {
-      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
-      Object.entries(defaults).forEach(([k, v]) => bg(k, data[k] || v))
-      document.querySelectorAll<HTMLElement>('[data-edit]').forEach((el) => {
-        const key = el.dataset.edit
-        if (key && data[key]) {
-          if (el.tagName === 'A') (el as HTMLAnchorElement).href = data[key]
-          else el.textContent = data[key]
-        }
-      })
-    }
-
-    const textKeys = ['heroEyebrow','heroTitle','heroDesc','p1Title','p1Desc','p1Link','p2Title','p2Desc','p2Link','p3Title','p3Desc','p3Link','p4Title','p4Desc','p4Link']
-    const imgKeys = ['heroImage','pimg1','pimg2','pimg3','pimg4','automationImage','caseImage','aboutImage']
-
-    window.openAdmin = () => {
-      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
-      const box = document.getElementById('editorFields')
-      if (!box) return
-      box.innerHTML = ''
-      textKeys.forEach((k) => {
-        const el = document.querySelector<HTMLElement>(`[data-edit="${k}"]`)
-        const value = data[k] || (el ? (el.tagName === 'A' ? (el as HTMLAnchorElement).href : el.textContent) : '') || ''
-        box.innerHTML += `<div class="field"><label>${k}</label><textarea rows="2" data-key="${k}">${value}</textarea></div>`
-      })
-      imgKeys.forEach((k) => {
-        box.innerHTML += `<div class="field"><label>${k} image URL</label><input data-key="${k}" value="${data[k] || defaults[k]}"></div>`
-      })
-      document.getElementById('adminModal')?.classList.add('open')
-    }
-
-    window.closeAdmin = () => document.getElementById('adminModal')?.classList.remove('open')
-
-    window.saveEdits = () => {
-      const data: Record<string, string> = {}
-      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('#editorFields [data-key]').forEach((i) => {
-        if (i.dataset.key) data[i.dataset.key] = i.value.trim()
-      })
-      localStorage.setItem('funelSiteEdits', JSON.stringify(data))
-      window.loadEdits()
-      window.closeAdmin()
-      alert('Saved in this browser. For public website backend, connect this page to a CMS.')
-    }
-
-    window.resetEdits = () => {
-      localStorage.removeItem('funelSiteEdits')
-      location.reload()
-    }
-
-    window.setLang = (lang: string) => {
-      if (lang === 'en') {
-        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.funelsensor.com; path=/;'
-      } else {
-        document.cookie = `googtrans=/en/${lang}; path=/`
-        document.cookie = `googtrans=/en/${lang}; domain=.funelsensor.com; path=/`
-      }
-      location.reload()
-    }
-
-    // Initialize Google Translate
-    const gtScript = document.createElement('script')
-    gtScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
-    document.body.appendChild(gtScript)
-    ;(window as any).googleTranslateElementInit = () => {
-      new (window as any).google.translate.TranslateElement({
-        pageLanguage: 'en',
-        layout: (window as any).google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
-      }, 'google_translate_element')
-    }
-
-    const year = document.getElementById('year')
-    if (year) year.textContent = new Date().getFullYear().toString()
-    window.loadEdits()
-  }, [])
-
-  return <div dangerouslySetInnerHTML={{ __html: pageHtml }} />
+  return (
+    <div className="min-h-screen bg-white">
+      <TopBar />
+      <Nav />
+      <main>
+        <Hero />
+        <TrustStats />
+        <Categories />
+        <SolutionsGrid />
+        <AboutCompact />
+      </main>
+      <Footer />
+      
+      {/* Floating Inquiry Button */}
+      <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-4">
+        <a 
+          href="https://wa.me/8615606523212" 
+          target="_blank"
+          className="bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 relative group"
+        >
+          <MessageCircle size={28} />
+          <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-white text-gray-900 px-4 py-2 rounded-xl text-sm font-black whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+            Chat on WhatsApp
+          </span>
+          <div className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full border-2 border-white animate-bounce" />
+        </a>
+      </div>
+    </div>
+  );
 }
