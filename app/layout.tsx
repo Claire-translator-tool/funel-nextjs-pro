@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     images: ['/images/project-case.png'],
     type: 'website',
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,8 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'FUNEL®',
-    url: 'https://your-domain.com',
-    logo: 'https://your-domain.com/images/logo.png',
+    url: 'https://funelsensor.com',
+    logo: 'https://funelsensor.com/images/logo.png',
     description: 'Professional supplier of industrial water monitoring and automation solutions.',
     contactPoint: {
       '@type': 'ContactPoint',
@@ -44,4 +47,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   )
-}
