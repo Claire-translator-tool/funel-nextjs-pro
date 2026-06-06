@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    google: 'VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ',
   },
 }
 
@@ -47,3 +47,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   )
+}
