@@ -9,7 +9,7 @@ export async function generateMetadata() {
   const home = await getPageContent("home");
 
   return {
-    title: home?.seo_title || "Funel Sensor | Online Water Quality Analyzer Manufacturer in China",
+    title: { absolute: home?.seo_title || "Funel Sensor | Online Water Quality Analyzer Manufacturer in China" },
     description:
       home?.seo_description ||
       "Online water quality analyzers, sensors, and controllers for wastewater treatment, drinking water, and industrial process monitoring.",
