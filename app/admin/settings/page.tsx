@@ -84,7 +84,7 @@ export default async function AdminSettingsPage({ searchParams }: Props) {
               </label>
             ))}
           </div>
-          <div className="card pad nested-tool">
+          <div className="nested-tool">
             <h2>Add setting</h2>
             <div className="form-row">
               <label>Key<input className="input" name="new_key" placeholder="example_key" /></label>
