@@ -24,7 +24,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <h2>Funel Admin</h2>
         <a href="/admin">Dashboard</a>
         <a href="/admin/inquiries">Inquiries</a>
-        <a href="/products">Products</a>
+        <a href="/admin/products">Products</a>
         <form action="/api/admin/logout" method="post"><button className="btn ghost" style={{ width: "100%" }}>Logout</button></form>
       </aside>
       <main className="admin-main">{children}</main>
@@ -50,18 +50,7 @@ export default async function AdminPage() {
         <div className="card pad"><h3>Won</h3><b>{won}</b></div>
       </div>
       <h2>Recent inquiries</h2>
-      <table className="table">
-        <tbody>
-          {inquiries.slice(0, 8).map((i) => (
-            <tr key={i.id}>
-              <td>{i.name}<br /><small>{i.email}</small></td>
-              <td>{i.product_interest}</td>
-              <td><span className="badge">{i.status || "new"}</span></td>
-              <td>{i.created_at ? new Date(i.created_at).toLocaleString() : ""}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <table className="table"><tbody>{inquiries.slice(0, 8).map((i) => <tr key={i.id}><td>{i.name}<br /><small>{i.email}</small></td><td>{i.product_interest}</td><td><span className="badge">{i.status || "new"}</span></td><td>{i.created_at ? new Date(i.created_at).toLocaleString() : ""}</td></tr>)}</tbody></table>
     </Shell>
   );
 }
