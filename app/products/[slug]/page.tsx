@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getSiteSettings } from "../../site-settings";
 import { getProductBySlug, getProducts, productImage } from "../product-data";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -17,15 +18,19 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
-  if (!product) return { title: "Product | Funel Sensor", description: "Funel Sensor product" };
-  const description = product.seo_description || product.summary || "Funel Sensor online water quality analyzer product.";
+  const [product, site] = await Promise.all([getProductBySlug(slug), getSiteSettings()]);
+  if (!product) return { title: { absolute: `Product | ${site.site_name}` }, description: `${site.site_name} product` };
+
+  const description = product.seo_description || product.summary || `${site.site_name} online water quality analyzer product.`;
+  const title = product.seo_title || product.name;
+  const canonical = `${site.site_domain}/products/${product.slug}`;
+
   return {
-    title: product.seo_title || product.name,
+    title: { absolute: title },
     description,
     keywords: product.seo_keywords || undefined,
-    alternates: { canonical: `https://www.funelsensor.com/products/${product.slug}` },
-    openGraph: { title: product.seo_title || product.name, description, url: `https://www.funelsensor.com/products/${product.slug}`, images: [productImage(product)] },
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical, images: [productImage(product)] },
   };
 }
 
