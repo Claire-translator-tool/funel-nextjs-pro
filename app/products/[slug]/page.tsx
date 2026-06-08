@@ -1,20 +1,47 @@
-const products = [
-  { slug: "pfdo-800-dissolved-oxygen-analyzer", name: "Online Dissolved Oxygen Analyzer", category: "Dissolved Oxygen", summary: "Online DO monitoring for aeration tanks, wastewater treatment, aquaculture and process water.", specs: ["Range: 0-20 mg/L", "4-20mA / RS485 Modbus", "Continuous online monitoring"], image: "https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png" },
-  { slug: "ph-orp-online-analyzer", name: "Online pH ORP Analyzer", category: "pH / ORP", summary: "Online pH and ORP measurement for dosing, neutralization, wastewater and industrial water.", specs: ["pH: 0-14", "ORP: -2000 to +2000 mV", "4-20mA / RS485 Modbus"], image: "https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png" },
-  { slug: "conductivity-tds-salinity-analyzer", name: "Conductivity TDS Salinity Analyzer", category: "Conductivity", summary: "Online conductivity, TDS and salinity monitoring for RO, boiler, cooling and process water.", specs: ["Conductivity / TDS / salinity", "Temperature compensation", "RS485 Modbus"], image: "https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png" },
-  { slug: "muc-200-multi-parameter-controller", name: "Multi-Parameter Water Quality Controller", category: "Controller", summary: "Multi-parameter controller for pH, ORP, conductivity, turbidity, DO and integrated stations.", specs: ["Multi-channel monitoring", "RS485 / 4-20mA", "Cabinet integration"], image: "https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png" },
-];
+import { notFound } from "next/navigation";
+import { getProductBySlug, getProducts, productImage } from "../product-data";
 
 type Props = { params: Promise<{ slug: string }> };
+const fallbackSpecs = ["4-20mA / RS485 Modbus", "Continuous online monitoring", "Project configuration support"];
+const fallbackApps = ["Wastewater treatment", "Drinking water", "Industrial process water"];
+const fallbackBenefits = ["Fast quotation support", "Datasheet and sample help", "OEM and system integration support"];
+
+function clean(items?: string[] | null) {
+  return Array.isArray(items) ? items.filter(Boolean) : [];
+}
+
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map((product) => ({ slug: product.slug }));
+}
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const product = products.find((p) => p.slug === slug);
-  return { title: product?.name || "Product", description: product?.summary || "Funel Sensor product" };
+  const product = await getProductBySlug(slug);
+  if (!product) return { title: "Product | Funel Sensor", description: "Funel Sensor product" };
+  const description = product.seo_description || product.summary || "Funel Sensor online water quality analyzer product.";
+  return {
+    title: product.seo_title || product.name,
+    description,
+    keywords: product.seo_keywords || undefined,
+    alternates: { canonical: `https://www.funelsensor.com/products/${product.slug}` },
+    openGraph: { title: product.seo_title || product.name, description, url: `https://www.funelsensor.com/products/${product.slug}`, images: [productImage(product)] },
+  };
 }
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const product = products.find((p) => p.slug === slug) || products[0];
-  return <main><section className="section soft"><div className="container split"><div><span className="pill">{product.category}</span><h1>{product.name}</h1><p className="muted">{product.summary}</p><div className="actions"><a className="btn primary" href={`/contact?product=${encodeURIComponent(product.name)}`}>Request Quote</a><a className="btn ghost" href={`/contact?product=${encodeURIComponent(product.name)}&request=datasheet`}>Get Datasheet</a></div></div><div className="card"><img src={product.image} alt={product.name}/></div></div></section><section className="section"><div className="container grid three"><div className="card pad"><h2>Specifications</h2><ul>{product.specs.map((item)=><li key={item}>{item}</li>)}</ul></div><div className="card pad"><h2>Applications</h2><p>Wastewater treatment, drinking water, industrial process water and monitoring station projects.</p></div><div className="card pad"><h2>Support</h2><p>Send water type, range, output signal, quantity and installation information for configuration help.</p></div></div></section></main>;
+  const product = await getProductBySlug(slug);
+  if (!product) notFound();
+  const specs = clean(product.specs).length ? clean(product.specs) : fallbackSpecs;
+  const applications = clean(product.applications).length ? clean(product.applications) : fallbackApps;
+  const benefits = clean(product.benefits).length ? clean(product.benefits) : fallbackBenefits;
+
+  return (
+    <main>
+      <section className="section soft"><div className="container split"><div><span className="pill">{product.category || "Water Quality"}</span><h1>{product.name}</h1>{product.model && <p><b>Model:</b> {product.model}</p>}<p className="muted">{product.summary}</p><div className="actions"><a className="btn primary" href={`/contact?product=${encodeURIComponent(product.name)}`}>Request Quote</a><a className="btn ghost" href={`/contact?product=${encodeURIComponent(product.name)}&request=datasheet`}>Get Datasheet</a></div></div><div className="card"><img src={productImage(product)} alt={product.name} /></div></div></section>
+      <section className="section"><div className="container grid three"><div className="card pad"><h2>Specifications</h2><ul>{specs.map((item) => <li key={item}>{item}</li>)}</ul></div><div className="card pad"><h2>Applications</h2><ul>{applications.map((item) => <li key={item}>{item}</li>)}</ul></div><div className="card pad"><h2>Benefits</h2><ul>{benefits.map((item) => <li key={item}>{item}</li>)}</ul></div></div></section>
+      <section className="section soft"><div className="container split"><div className="section-title"><small>Configuration help</small><h2>Tell us your water type and signal requirements</h2><p>We will help select the right analyzer, sensor, controller, output signal and installation plan for your project.</p></div><div className="card pad"><h3>Get a project quote</h3><p>Send parameter, measuring range, quantity, output signal and application. We will prepare a quotation and datasheet.</p><a className="btn primary" href={`/contact?product=${encodeURIComponent(product.name)}&request=quote`}>Request quote</a></div></div></section>
+    </main>
+  );
 }
