@@ -21,6 +21,9 @@ export default async function HomePage() {
   const heroTitle = blockText(home?.blocks, "hero", defaultHero);
   const heroSummary = blockText(home?.blocks, "summary", defaultSummary);
   const primaryCta = blockText(home?.blocks, "primary_cta", "Explore Products");
+  const primaryHref = primaryCta.toLowerCase().includes("quote") ? "/contact" : "/products";
+  const secondaryHref = primaryHref === "/contact" ? "/products" : "/contact";
+  const secondaryText = primaryHref === "/contact" ? "Explore Products" : "Request Quote";
   const featuredProducts = products.slice(0, 3);
 
   return (
@@ -32,11 +35,11 @@ export default async function HomePage() {
             <h1>{heroTitle}</h1>
             <p>{heroSummary}</p>
             <div className="actions">
-              <a className="btn primary" href="/products">
+              <a className="btn primary" href={primaryHref}>
                 {primaryCta}
               </a>
-              <a className="btn ghost" href="/contact">
-                Request Quote
+              <a className="btn ghost" href={secondaryHref}>
+                {secondaryText}
               </a>
             </div>
             <div className="hero-grid">
