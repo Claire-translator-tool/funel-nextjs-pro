@@ -1,50 +1,115 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from "next";
+import "./globals.css";
+
+const site = {
+  name: "Funel Sensor",
+  domain: "https://www.funelsensor.com",
+  email: "claire23803@gmail.com",
+  whatsapp: "+8615606523212",
+  phoneLabel: "+86 156 0652 3212",
+  description:
+    "Funel Sensor supplies online water quality analyzers, sensors, transmitters and multi-parameter controllers for wastewater, drinking water and industrial process monitoring.",
+};
 
 export const metadata: Metadata = {
-  title: 'FUNEL® | Industrial Water Monitoring & Automation Solutions',
-  description: 'FUNEL® supplies online water quality analyzers, sensors, PLC automation cabinets, and integrated monitoring systems for wastewater, municipal water, industrial process water and smart water projects.',
-  keywords: ['online water quality analyzer', 'water monitoring system', 'industrial water instrumentation', 'wastewater monitoring', 'PLC automation'],
+  metadataBase: new URL(site.domain),
+  title: {
+    default: "Funel Sensor | Online Water Quality Analyzer Manufacturer",
+    template: "%s | Funel Sensor",
+  },
+  description: site.description,
+  keywords: [
+    "online water quality analyzer",
+    "dissolved oxygen analyzer",
+    "pH ORP analyzer",
+    "conductivity meter",
+    "turbidity analyzer",
+    "COD analyzer",
+    "ammonia nitrogen analyzer",
+  ],
   openGraph: {
-    title: 'FUNEL® Industrial Water Monitoring & Automation Solutions',
-    description: 'Online water analyzers, sensors, monitoring stations and automation solutions for global water treatment projects.',
-    images: ['/images/project-case.png'],
-    type: 'website',
+    title: "Funel Sensor",
+    description: site.description,
+    url: site.domain,
+    siteName: site.name,
+    type: "website",
   },
   verification: {
-    google: 'VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ',
+    google:
+      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
+      "VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ",
   },
+};
+
+function Header() {
+  return (
+    <>
+      <div className="top">
+        <div className="container">
+          <span>FUNEL Industrial Water Monitoring</span>
+          <span>
+            WhatsApp: {site.phoneLabel} · Email: {site.email}
+          </span>
+        </div>
+      </div>
+      <nav className="nav">
+        <div className="container">
+          <a className="brand" href="/">
+            FUNEL
+          </a>
+          <div className="menu">
+            <a href="/products">Products</a>
+            <a href="/#applications">Applications</a>
+            <a href="/#factory">Factory</a>
+            <a href="/contact">Contact</a>
+          </div>
+          <div className="actions">
+            <a className="btn ghost" href="/admin">
+              Admin
+            </a>
+            <a className="btn primary" href="/contact">
+              Request Quote
+            </a>
+          </div>
+        </div>
+      </nav>
+    </>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="container">
+        <div>
+          <b>FUNEL Sensor</b>
+          <br />
+          Online water quality analyzers and process monitoring systems.
+        </div>
+        <div>
+          Email: {site.email}
+          <br />
+          WhatsApp: {site.phoneLabel}
+        </div>
+      </div>
+    </footer>
+  );
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const orgSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'FUNEL®',
-    url: 'https://funelsensor.com',
-    logo: 'https://funelsensor.com/images/logo.png',
-    description: 'Professional supplier of industrial water monitoring and automation solutions.',
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'Customer Service',
-      telephone: '+86-156-0652-3212',
-      email: 'Claire@funel-sensor.com',
-    },
-    sameAs: [
-      'https://sxfne1688.en.alibaba.com',
-      'https://linkedin.com/in/claire-chen-1a6629399',
-    ],
-  }
-
   return (
     <html lang="en">
       <body>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
-        />
+        <Header />
         {children}
+        <Footer />
+        <div className="float">
+          <a href={`https://wa.me/${site.whatsapp.replace(/\D/g, "")}`}>
+            WhatsApp
+          </a>
+          <a href={`mailto:${site.email}`}>Email</a>
+        </div>
       </body>
     </html>
-  )
+  );
 }
