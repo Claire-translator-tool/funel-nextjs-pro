@@ -1,15 +1,14 @@
 import type { MetadataRoute } from "next";
+import { getProducts } from "./products/product-data";
 
 const domain = "https://www.funelsensor.com";
-const products = [
-  "pfdo-800-dissolved-oxygen-analyzer",
-  "ph-orp-online-analyzer",
-  "conductivity-tds-salinity-analyzer",
-  "muc-200-multi-parameter-controller",
-];
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  return ["", "/products", "/contact", ...products.map((slug) => `/products/${slug}`)].map((path) => ({
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const products = await getProducts();
+  const staticPaths = ["", "/products", "/contact"];
+  const productPaths = products.map((product) => `/products/${product.slug}`);
+
+  return [...staticPaths, ...productPaths].map((path) => ({
     url: `${domain}${path}`,
     lastModified: new Date(),
   }));
