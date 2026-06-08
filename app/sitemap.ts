@@ -1,8 +1,16 @@
-import type { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
+
+const domain = "https://www.funelsensor.com";
+const products = [
+  "pfdo-800-dissolved-oxygen-analyzer",
+  "ph-orp-online-analyzer",
+  "conductivity-tds-salinity-analyzer",
+  "muc-200-multi-parameter-controller",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://funelsensor.com'
-  return [
-    { url: `${baseUrl}/`, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
-  ]
+  return ["", "/products", "/contact", ...products.map((slug) => `/products/${slug}`)].map((path) => ({
+    url: `${domain}${path}`,
+    lastModified: new Date(),
+  }));
 }
