@@ -1,15 +1,20 @@
 import type { MetadataRoute } from "next";
+import { getPublishedPages, pagePath } from "./page-content";
 import { getProducts } from "./products/product-data";
-
-const domain = "https://www.funelsensor.com";
+import { getSiteSettings } from "./site-settings";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getProducts();
-  const staticPaths = ["", "/products", "/contact"];
-  const productPaths = products.map((product) => `/products/${product.slug}`);
+  const [site, pages, products] = await Promise.all([getSiteSettings(), getPublishedPages(), getProducts()]);
+  const paths = new Set<string>();
 
-  return [...staticPaths, ...productPaths].map((path) => ({
-    url: `${domain}${path}`,
+  pages.forEach((page) => paths.add(pagePath(page.slug)));
+  paths.add("");
+  paths.add("/products");
+  paths.add("/contact");
+  products.forEach((product) => paths.add(`/products/${product.slug}`));
+
+  return Array.from(paths).map((path) => ({
+    url: `${site.site_domain}${path}`,
     lastModified: new Date(),
   }));
 }
