@@ -1,131 +1,194 @@
-"use client"
-
-import { useEffect } from 'react'
-
-declare global {
-  interface Window {
-    openAdmin: () => void
-    closeAdmin: () => void
-    saveEdits: () => void
-    resetEdits: () => void
-    setLang: (v: string) => void
-    loadEdits: () => void
-  }
-}
-
-const pageHtml = `<div class="top"><span>FUNEL® Industrial Water Monitoring & Automation</span><span>WhatsApp: +86 15606523212 · Email: Claire@funel-sensor.com</span></div>
-<nav class="nav"><a class="brand" href="#home"><img id="logoImg" src="https://sc01.alicdn.com/kf/Abeefe2fc62fe493e9b8a2a7f7c9e5e36c.png" alt="FUNEL logo"><span>FUNEL®</span></a><div class="menu"><a href="#products">Products</a><a href="#solutions">Solutions</a><a href="#automation">Automation</a><a href="#projects">Projects</a><a href="#about">About</a><a href="#contact">Contact</a></div><div class="nav-actions"><select class="lang" onchange="setLang(this.value)"><option value="en">English</option><option value="es">Español</option><option value="ru">Русский</option><option value="ar">العربية</option><option value="ko">한국어</option></select><button class="admin-btn" style="display:none" onclick="openAdmin()">Edit</button><a class="btn primary" href="https://sxfne1688.en.alibaba.com" target="_blank">Alibaba Store</a></div></nav>
-<header id="home" class="hero"><div class="hero-text"><div class="eyebrow" data-edit="heroEyebrow">Engineered for water treatment projects</div><h1 data-edit="heroTitle">Industrial Water Monitoring & Process Automation Solutions</h1><p data-edit="heroDesc">FUNEL® supplies online water quality analyzers, digital sensors, PLC control cabinets and integrated monitoring systems for municipal water, wastewater, industrial process water and smart water projects.</p><div class="hero-actions"><a class="btn primary" href="#products">Explore Products</a><a class="btn ghost" href="#contact">Request Solution</a></div><div class="hero-stats"><div class="stat"><b>Online</b><br>Water Analyzers</div><div class="stat"><b>PLC</b><br>Automation Systems</div><div class="stat"><b>OEM</b><br>Project Support</div></div></div><div class="hero-media"><div class="hero-card"><div id="heroImage" class="hero-img"></div><div class="hero-card-body"><div class="mini"><b>Water Quality</b><br>pH, ORP, DO, turbidity, COD, ammonia, chlorine</div><div class="mini"><b>System Integration</b><br>Sampling, sensors, cabinet, data platform, remote monitoring</div></div></div></div></header>
-<section id="products"><div class="section-head"><div class="tag">Product Center</div><h2>Online analyzers, sensors and monitoring systems</h2><p>Built for project-based water monitoring, system integration and industrial process control.</p></div><div class="grid4">
-<div class="card product-card"><div id="pimg1" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png')"></div><div class="card-body"><span class="pill">Water Quality Analyzer</span><h3 data-edit="p1Title">Online Water Quality Analyzers</h3><p data-edit="p1Desc">pH/ORP, dissolved oxygen, turbidity, suspended solids, conductivity, residual chlorine, COD, ammonia nitrogen and total phosphorus analyzers.</p><a class="link-slot" data-edit="p1Link" href="#contact">Add product detail link →</a></div></div>
-<div class="card product-card"><div id="pimg2" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/Ae5c0632e9c5f443fa1c6e6590e009f2cD.png')"></div><div class="card-body"><span class="pill">Digital Sensors</span><h3 data-edit="p2Title">Industrial Sensors & Transmitters</h3><p data-edit="p2Desc">Digital probes, controllers, transmitters and accessories for online water analysis and industrial field installation.</p><a class="link-slot" data-edit="p2Link" href="#contact">Add product detail link →</a></div></div>
-<div class="card product-card"><div id="pimg3" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/Aa3b21199cd064c9fa3fd46e9d5235d134.png')"></div><div class="card-body"><span class="pill">Integrated System</span><h3 data-edit="p3Title">Online Monitoring Stations</h3><p data-edit="p3Desc">Integrated sampling, pretreatment, online analysis, data acquisition and enclosure solutions for water quality monitoring stations.</p><a class="link-slot" data-edit="p3Link" href="#contact">Add product detail link →</a></div></div>
-
-<div class="card product-card"><div id="pimg4" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png')"></div><div class="card-body"><span class="pill">Multiparameter Controller</span><h3 data-edit="p4Title">MUC Controllers & Transmitters</h3><p data-edit="p4Desc">Multi-parameter controllers and transmitters for pH, ORP, conductivity, turbidity, DO and integrated online monitoring.</p><a class="link-slot" data-edit="p4Link" href="#contact">Add product detail link →</a></div></div>
-</div></section>
-<section id="solutions" class="solutions"><div class="section-head"><div class="tag">Applications</div><h2>Solutions by water treatment scenario</h2><p>FUNEL® presents products by process and application, so engineers can quickly match instruments to monitoring points.</p></div><div class="grid3"><div class="solution"><h3>Municipal Water</h3><p>Intake water, sedimentation, filtration, disinfection and clear water monitoring.</p></div><div class="solution"><h3>Wastewater Treatment</h3><p>Inlet, aeration tank, sludge concentration, final effluent and discharge compliance.</p></div><div class="solution"><h3>Industrial Process Water</h3><p>Cooling water, boiler water, chemical dosing, recycling water and discharge monitoring.</p></div><div class="solution"><h3>Surface Water & Environment</h3><p>River, lake, groundwater and environmental station applications.</p></div><div class="solution"><h3>Aquaculture</h3><p>DO, pH, temperature, ammonia and water safety monitoring for farms.</p></div><div class="solution"><h3>Chemical & Manufacturing</h3><p>Online analysis and automation control for process safety and stable production.</p></div></div></section>
-<section id="automation" class="dark"><div class="section-head"><div class="tag">Automation Integration</div><h2>From instrument to complete control system</h2><p>For overseas EPC contractors, integrators and distributors, FUNEL® can support complete monitoring architecture from field sensor to PLC/SCADA data layer.</p></div><div class="card" style="max-width:980px;margin:0 auto 32px;background:#fff;border:0"><div id="automationImage" class="card-img" style="height:430px;background-image:url('https://sc01.alicdn.com/kf/Ab03188199d8b4800bdf667dd81ec73ecH.png')"></div><div class="card-body"><span class="pill">PLC / SCADA</span><h3>Remote Monitoring Architecture</h3><p>System network, PLC/DCS control and SCADA screen display for water monitoring and automation projects.</p></div></div><div class="process"><div class="step"><span>1</span><h3>Sampling</h3><p>Sampling point design and pretreatment selection.</p></div><div class="step"><span>2</span><h3>Analysis</h3><p>Online analyzer, sensor and controller configuration.</p></div><div class="step"><span>3</span><h3>Cabinet</h3><p>PLC cabinet, power distribution and field wiring.</p></div><div class="step"><span>4</span><h3>Data</h3><p>RS485/4-20mA, gateway, cloud and SCADA integration.</p></div><div class="step"><span>5</span><h3>Service</h3><p>OEM support, commissioning guidance and spare parts.</p></div></div></section>
-<section id="projects"><div class="section-head"><div class="tag">Project Experience</div><h2>Engineering-style project presentation</h2><p>Use this area to upload your real water plant, control cabinet, installation and commissioning photos.</p></div><div class="case"><div id="caseImage" class="card-img" style="background-image:url('https://sc01.alicdn.com/kf/Ad154a1057360439da86f4a1c2213e447K.png')"></div><div class="case-list"><div class="case-item"><h3>Water Treatment Plant Monitoring</h3><p>Multi-parameter online monitoring for inlet, process and outlet water quality.</p></div><div class="case-item"><h3>Wastewater Automation Control</h3><p>PLC cabinet, field instruments and process data acquisition for stable operation.</p></div><div class="case-item"><h3>Industrial Discharge Monitoring</h3><p>Integrated station for COD, ammonia, pH, flow and compliance monitoring.</p></div></div></div></section>
-<section id="about" class="about"><div class="split"><div><div class="tag">About FUNEL®</div><h2>Water analysis instruments with engineering capability</h2><p>FUNEL® focuses on industrial online water quality analysis, sensors, automation control and integrated monitoring systems. We serve water treatment companies, EPC contractors, system integrators, distributors and OEM partners.</p><p>Our website is structured around product families, process applications and project solutions, helping overseas customers understand both product supply and system integration ability.</p><div class="certs"><div class="cert">OEM / ODM</div><div class="cert">Technical Support</div><div class="cert">Project Integration</div><div class="cert">Global Inquiry</div></div></div><div class="card"><div id="aboutImage" class="card-img" style="height:430px;background-image:url('https://sc01.alicdn.com/kf/A407492db480e47b9b4c242860e078526J.png')"></div></div></div></section>
-<section id="contact" class="contact"><div class="split"><div><div class="tag">Contact</div><h2>Send your project requirements</h2><p>Tell us your water type, monitoring parameters, measuring range, installation site and communication requirements. We will help select analyzers and system configuration.</p><div class="contact-box"><p><b>WhatsApp:</b> <a href="https://wa.me/8615606523212" target="_blank">+86 15606523212</a></p><p><b>Email:</b> <a href="mailto:Claire@funel-sensor.com">Claire@funel-sensor.com</a></p><p><b>Alibaba:</b> <a href="https://sxfne1688.en.alibaba.com" target="_blank">FUNEL Alibaba International Store</a></p><p><b>LinkedIn:</b> <a href="https://linkedin.com/in/claire-chen-1a6629399" target="_blank">Claire Chen</a></p></div></div><form class="form" onsubmit="event.preventDefault();location.href='mailto:Claire@funel-sensor.com?subject=FUNEL Inquiry&body=Please tell us your water type, parameters and project requirements.'"><input placeholder="Your name / company"><input placeholder="Email / WhatsApp"><input placeholder="Country / market"><textarea rows="7" placeholder="Project requirements: parameters, water type, range, quantity, application..."></textarea><button class="btn primary" type="submit">Send Inquiry</button></form></div></section>
-<footer class="footer"><div><b>FUNEL®</b><br>Industrial Water Monitoring & Automation Solutions</div><div>© <span id="year"></span> FUNEL. All rights reserved.</div></footer>
-<div class="float"><a href="https://wa.me/8615606523212" target="_blank">WhatsApp</a><a href="mailto:Claire@funel-sensor.com">Email</a><button style="display:none" onclick="openAdmin()">Edit Images</button></div>
-<div id="adminModal" class="modal"><div class="panel"><h3>FUNEL Website Quick Editor</h3><div class="note">这是单文件 HTML 的“简易后台”：可以修改文字、图片 URL、产品链接，并保存在当前浏览器。正式上线后建议接入 WordPress / Webflow / Strapi CMS，后台可多人管理和上传图片。</div><div class="edit-grid" id="editorFields"></div><div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn primary" onclick="saveEdits()">Save Changes</button><button class="btn darkghost" onclick="resetEdits()">Reset</button><button class="btn darkghost" onclick="closeAdmin()">Close</button></div></div></div><div id="google_translate_element" style="display:none"></div>`
+const products = [
+  {
+    slug: "pfdo-800-dissolved-oxygen-analyzer",
+    name: "Online Dissolved Oxygen Analyzer",
+    category: "Dissolved Oxygen",
+    summary:
+      "Online DO monitoring for aeration tanks, wastewater treatment, aquaculture and process water.",
+    image:
+      "https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png",
+  },
+  {
+    slug: "ph-orp-online-analyzer",
+    name: "Online pH ORP Analyzer",
+    category: "pH / ORP",
+    summary:
+      "Online pH and ORP measurement for dosing, neutralization, wastewater and industrial water.",
+    image:
+      "https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png",
+  },
+  {
+    slug: "conductivity-tds-salinity-analyzer",
+    name: "Conductivity TDS Salinity Analyzer",
+    category: "Conductivity",
+    summary:
+      "Online conductivity, TDS and salinity monitoring for RO, boiler, cooling and process water.",
+    image:
+      "https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png",
+  },
+];
 
 export default function HomePage() {
-  useEffect(() => {
-    const defaults: Record<string, string> = {
-      heroImage: 'https://sc01.alicdn.com/kf/A11e5f71d92044394adbceea5ff5434735.png',
-      pimg1: 'https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png',
-      pimg2: 'https://sc01.alicdn.com/kf/Ae5c0632e9c5f443fa1c6e6590e009f2cD.png',
-      pimg3: 'https://sc01.alicdn.com/kf/Aa3b21199cd064c9fa3fd46e9d5235d134.png',
-      caseImage: 'https://sc01.alicdn.com/kf/Ad154a1057360439da86f4a1c2213e447K.png',
-      aboutImage: 'https://sc01.alicdn.com/kf/A407492db480e47b9b4c242860e078526J.png',
-      pimg4: 'https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png',
-      automationImage: 'https://sc01.alicdn.com/kf/Ab03188199d8b4800bdf667dd81ec73ecH.png',
-    }
+  return (
+    <main>
+      <section className="hero">
+        <div className="container">
+          <div>
+            <div className="eyebrow">Engineered for water treatment projects</div>
+            <h1>Industrial Water Monitoring & Process Automation Solutions</h1>
+            <p>
+              Funel Sensor supplies online analyzers, digital sensors,
+              controllers and integrated monitoring systems for municipal water,
+              wastewater and industrial process water projects.
+            </p>
+            <div className="actions">
+              <a className="btn primary" href="/products">
+                Explore Products
+              </a>
+              <a className="btn ghost" href="/contact">
+                Request Quote
+              </a>
+            </div>
+            <div className="hero-grid">
+              <div className="metric">
+                <b>DO / pH / ORP</b>
+                <br />
+                Core analyzers
+              </div>
+              <div className="metric">
+                <b>COD / NH3-N</b>
+                <br />
+                Compliance monitoring
+              </div>
+              <div className="metric">
+                <b>PLC / SCADA</b>
+                <br />
+                Integration support
+              </div>
+            </div>
+          </div>
+          <div className="hero-media">
+            <img
+              src="https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png"
+              alt="Online water quality analyzers"
+            />
+          </div>
+        </div>
+      </section>
 
-    const bg = (id: string, url?: string) => {
-      const el = document.getElementById(id) as HTMLElement | null
-      if (el && url) el.style.backgroundImage = `url('${url}')`
-    }
+      <section className="section">
+        <div className="container">
+          <div className="section-title">
+            <small>Product center</small>
+            <h2>Popular online water quality instruments</h2>
+            <p>
+              Product pages are prepared for dissolved oxygen, pH/ORP,
+              conductivity, turbidity, COD, ammonia nitrogen and multi-parameter
+              controllers.
+            </p>
+          </div>
+          <div className="grid three">
+            {products.map((product) => (
+              <article className="card" key={product.slug}>
+                <img src={product.image} alt={product.name} />
+                <div className="card pad">
+                  <span className="pill">{product.category}</span>
+                  <h3>{product.name}</h3>
+                  <p>{product.summary}</p>
+                  <a className="btn ghost" href={`/products/${product.slug}`}>
+                    View details
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
-    window.loadEdits = () => {
-      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
-      Object.entries(defaults).forEach(([k, v]) => bg(k, data[k] || v))
-      document.querySelectorAll<HTMLElement>('[data-edit]').forEach((el) => {
-        const key = el.dataset.edit
-        if (key && data[key]) {
-          if (el.tagName === 'A') (el as HTMLAnchorElement).href = data[key]
-          else el.textContent = data[key]
-        }
-      })
-    }
+      <section id="applications" className="section soft">
+        <div className="container">
+          <div className="section-title">
+            <small>Applications</small>
+            <h2>Built around real monitoring scenarios</h2>
+          </div>
+          <div className="grid three">
+            {[
+              "Municipal water treatment",
+              "Wastewater discharge compliance",
+              "Industrial process water",
+              "Aquaculture water monitoring",
+              "Surface water stations",
+              "OEM system integration",
+            ].map((item) => (
+              <div className="card pad" key={item}>
+                <h3>{item}</h3>
+                <p>
+                  Parameter selection, output signal, installation and
+                  maintenance support for project buyers.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-    const textKeys = ['heroEyebrow','heroTitle','heroDesc','p1Title','p1Desc','p1Link','p2Title','p2Desc','p2Link','p3Title','p3Desc','p3Link','p4Title','p4Desc','p4Link']
-    const imgKeys = ['heroImage','pimg1','pimg2','pimg3','pimg4','automationImage','caseImage','aboutImage']
+      <section id="factory" className="section dark">
+        <div className="container split">
+          <div>
+            <div className="section-title">
+              <small>Factory and service</small>
+              <h2>From instrument selection to complete configuration</h2>
+              <p>
+                We support distributors, EPC contractors and system integrators
+                with product selection, datasheets, sample requests and quotation
+                follow-up.
+              </p>
+            </div>
+            <a className="btn primary" href="/contact">
+              Get datasheet / sample help
+            </a>
+          </div>
+          <div className="card pad">
+            <h3>Inquiry follow-up backend</h3>
+            <p>
+              Quote requests are saved into Supabase. The admin dashboard can
+              view inquiries, change status, add notes and export CSV.
+            </p>
+          </div>
+        </div>
+      </section>
 
-    window.openAdmin = () => {
-      const data = JSON.parse(localStorage.getItem('funelSiteEdits') || '{}')
-      const box = document.getElementById('editorFields')
-      if (!box) return
-      box.innerHTML = ''
-      textKeys.forEach((k) => {
-        const el = document.querySelector<HTMLElement>(`[data-edit="${k}"]`)
-        const value = data[k] || (el ? (el.tagName === 'A' ? (el as HTMLAnchorElement).href : el.textContent) : '') || ''
-        box.innerHTML += `<div class="field"><label>${k}</label><textarea rows="2" data-key="${k}">${value}</textarea></div>`
-      })
-      imgKeys.forEach((k) => {
-        box.innerHTML += `<div class="field"><label>${k} image URL</label><input data-key="${k}" value="${data[k] || defaults[k]}"></div>`
-      })
-      document.getElementById('adminModal')?.classList.add('open')
-    }
-
-    window.closeAdmin = () => document.getElementById('adminModal')?.classList.remove('open')
-
-    window.saveEdits = () => {
-      const data: Record<string, string> = {}
-      document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('#editorFields [data-key]').forEach((i) => {
-        if (i.dataset.key) data[i.dataset.key] = i.value.trim()
-      })
-      localStorage.setItem('funelSiteEdits', JSON.stringify(data))
-      window.loadEdits()
-      window.closeAdmin()
-      alert('Saved in this browser. For public website backend, connect this page to a CMS.')
-    }
-
-    window.resetEdits = () => {
-      localStorage.removeItem('funelSiteEdits')
-      location.reload()
-    }
-
-    window.setLang = (lang: string) => {
-      if (lang === 'en') {
-        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-        document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.funelsensor.com; path=/;'
-      } else {
-        document.cookie = `googtrans=/en/${lang}; path=/`
-        document.cookie = `googtrans=/en/${lang}; domain=.funelsensor.com; path=/`
-      }
-      location.reload()
-    }
-
-    // Initialize Google Translate
-    const gtScript = document.createElement('script')
-    gtScript.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
-    document.body.appendChild(gtScript)
-    ;(window as any).googleTranslateElementInit = () => {
-      new (window as any).google.translate.TranslateElement({
-        pageLanguage: 'en',
-        layout: (window as any).google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
-      }, 'google_translate_element')
-    }
-
-    const year = document.getElementById('year')
-    if (year) year.textContent = new Date().getFullYear().toString()
-    window.loadEdits()
-  }, [])
-
-  return <div dangerouslySetInnerHTML={{ __html: pageHtml }} />
+      <section className="section">
+        <div className="container split">
+          <div>
+            <div className="section-title">
+              <small>FAQ</small>
+              <h2>Before requesting a quote</h2>
+            </div>
+            <p>
+              <b>What should I send?</b>
+              <br />
+              Water type, parameter, measuring range, quantity, output signal,
+              installation site and target application.
+            </p>
+            <p>
+              <b>Can you support OEM?</b>
+              <br />
+              Yes, we can support OEM / ODM and system integrator project needs.
+            </p>
+          </div>
+          <div className="card pad">
+            <h3>Ready for quotation?</h3>
+            <p>
+              Send your project information and we will prepare product
+              configuration and datasheet support.
+            </p>
+            <a className="btn primary" href="/contact">
+              Request Quote
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
