@@ -1,49 +1,39 @@
-const products = [
-  {
-    slug: "pfdo-800-dissolved-oxygen-analyzer",
-    name: "Online Dissolved Oxygen Analyzer",
-    category: "Dissolved Oxygen",
-    summary:
-      "Online DO monitoring for aeration tanks, wastewater treatment, aquaculture and process water.",
-    image:
-      "https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png",
-  },
-  {
-    slug: "ph-orp-online-analyzer",
-    name: "Online pH ORP Analyzer",
-    category: "pH / ORP",
-    summary:
-      "Online pH and ORP measurement for dosing, neutralization, wastewater and industrial water.",
-    image:
-      "https://sc01.alicdn.com/kf/A7a9e8ba9d0ee48089a75084483e264beq.png",
-  },
-  {
-    slug: "conductivity-tds-salinity-analyzer",
-    name: "Conductivity TDS Salinity Analyzer",
-    category: "Conductivity",
-    summary:
-      "Online conductivity, TDS and salinity monitoring for RO, boiler, cooling and process water.",
-    image:
-      "https://sc01.alicdn.com/kf/A720309b651ed4be6b3a7d972061cbea2Z.png",
-  },
-];
+import { blockText, getPageContent } from "./page-content";
+import { getProducts, productImage } from "./products/product-data";
 
-export default function HomePage() {
+const defaultHero = "Industrial Water Monitoring & Process Automation Solutions";
+const defaultSummary =
+  "Funel Sensor supplies online analyzers, digital sensors, controllers and integrated monitoring systems for municipal water, wastewater and industrial process water projects.";
+
+export async function generateMetadata() {
+  const home = await getPageContent("home");
+
+  return {
+    title: home?.seo_title || "Funel Sensor | Online Water Quality Analyzer Manufacturer in China",
+    description:
+      home?.seo_description ||
+      "Online water quality analyzers, sensors, and controllers for wastewater treatment, drinking water, and industrial process monitoring.",
+  };
+}
+
+export default async function HomePage() {
+  const [home, products] = await Promise.all([getPageContent("home"), getProducts()]);
+  const heroTitle = blockText(home?.blocks, "hero", defaultHero);
+  const heroSummary = blockText(home?.blocks, "summary", defaultSummary);
+  const primaryCta = blockText(home?.blocks, "primary_cta", "Explore Products");
+  const featuredProducts = products.slice(0, 3);
+
   return (
     <main>
       <section className="hero">
         <div className="container">
           <div>
             <div className="eyebrow">Engineered for water treatment projects</div>
-            <h1>Industrial Water Monitoring & Process Automation Solutions</h1>
-            <p>
-              Funel Sensor supplies online analyzers, digital sensors,
-              controllers and integrated monitoring systems for municipal water,
-              wastewater and industrial process water projects.
-            </p>
+            <h1>{heroTitle}</h1>
+            <p>{heroSummary}</p>
             <div className="actions">
               <a className="btn primary" href="/products">
-                Explore Products
+                {primaryCta}
               </a>
               <a className="btn ghost" href="/contact">
                 Request Quote
@@ -88,9 +78,9 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid three">
-            {products.map((product) => (
+            {featuredProducts.map((product) => (
               <article className="card" key={product.slug}>
-                <img src={product.image} alt={product.name} />
+                <img src={productImage(product)} alt={product.name} />
                 <div className="card pad">
                   <span className="pill">{product.category}</span>
                   <h3>{product.name}</h3>
