@@ -1,54 +1,52 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { getSiteSettings, whatsappLink } from "./site-settings";
 
-const site = {
-  name: "Funel Sensor",
-  domain: "https://www.funelsensor.com",
-  email: "claire23803@gmail.com",
-  whatsapp: "+8615606523212",
-  phoneLabel: "+86 156 0652 3212",
-  description:
-    "Funel Sensor supplies online water quality analyzers, sensors, transmitters and multi-parameter controllers for wastewater, drinking water and industrial process monitoring.",
-};
+const defaultDescription =
+  "Funel Sensor supplies online water quality analyzers, sensors, transmitters and multi-parameter controllers for wastewater, drinking water and industrial process monitoring.";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(site.domain),
-  title: {
-    default: "Funel Sensor | Online Water Quality Analyzer Manufacturer",
-    template: "%s | Funel Sensor",
-  },
-  description: site.description,
-  keywords: [
-    "online water quality analyzer",
-    "dissolved oxygen analyzer",
-    "pH ORP analyzer",
-    "conductivity meter",
-    "turbidity analyzer",
-    "COD analyzer",
-    "ammonia nitrogen analyzer",
-  ],
-  openGraph: {
-    title: "Funel Sensor",
-    description: site.description,
-    url: site.domain,
-    siteName: site.name,
-    type: "website",
-  },
-  verification: {
-    google:
-      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
-      "VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteSettings();
 
-function Header() {
+  return {
+    metadataBase: new URL(site.site_domain),
+    title: {
+      default: `${site.site_name} | Online Water Quality Analyzer Manufacturer`,
+      template: `%s | ${site.site_name}`,
+    },
+    description: site.company_tagline || defaultDescription,
+    keywords: [
+      "online water quality analyzer",
+      "dissolved oxygen analyzer",
+      "pH ORP analyzer",
+      "conductivity meter",
+      "turbidity analyzer",
+      "COD analyzer",
+      "ammonia nitrogen analyzer",
+    ],
+    openGraph: {
+      title: site.site_name,
+      description: site.company_tagline || defaultDescription,
+      url: site.site_domain,
+      siteName: site.site_name,
+      type: "website",
+    },
+    verification: {
+      google:
+        process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
+        "VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ",
+    },
+  };
+}
+
+function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> }) {
   return (
     <>
       <div className="top">
         <div className="container">
           <span>FUNEL Industrial Water Monitoring</span>
           <span>
-            WhatsApp: {site.phoneLabel} · Email: {site.email}
+            WhatsApp: {site.contact_whatsapp} - Email: {site.contact_email}
           </span>
         </div>
       </div>
@@ -77,37 +75,37 @@ function Header() {
   );
 }
 
-function Footer() {
+function Footer({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> }) {
   return (
     <footer className="footer">
       <div className="container">
         <div>
-          <b>FUNEL Sensor</b>
+          <b>{site.site_name}</b>
           <br />
-          Online water quality analyzers and process monitoring systems.
+          {site.company_tagline}
         </div>
         <div>
-          Email: {site.email}
+          Email: {site.contact_email}
           <br />
-          WhatsApp: {site.phoneLabel}
+          WhatsApp: {site.contact_whatsapp}
         </div>
       </div>
     </footer>
   );
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const site = await getSiteSettings();
+
   return (
     <html lang="en">
       <body>
-        <Header />
+        <Header site={site} />
         {children}
-        <Footer />
+        <Footer site={site} />
         <div className="float">
-          <a href={`https://wa.me/${site.whatsapp.replace(/\D/g, "")}`}>
-            WhatsApp
-          </a>
-          <a href={`mailto:${site.email}`}>Email</a>
+          <a href={whatsappLink(site.contact_whatsapp)}>WhatsApp</a>
+          <a href={`mailto:${site.contact_email}`}>Email</a>
         </div>
       </body>
     </html>
