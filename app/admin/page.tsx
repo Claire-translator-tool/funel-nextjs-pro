@@ -25,6 +25,8 @@ function Shell({ children }: { children: React.ReactNode }) {
         <a href="/admin">Dashboard</a>
         <a href="/admin/inquiries">Inquiries</a>
         <a href="/admin/products">Products</a>
+        <a href="/admin/pages">Pages</a>
+        <a href="/admin/settings">Settings</a>
         <form action="/api/admin/logout" method="post"><button className="btn ghost" style={{ width: "100%" }}>Logout</button></form>
       </aside>
       <main className="admin-main">{children}</main>
