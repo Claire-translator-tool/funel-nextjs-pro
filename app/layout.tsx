@@ -43,9 +43,9 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
     <>
       <div className="top">
         <div className="container">
-          <span>FUNELÂ® Industrial Water Monitoring & Automation</span>
+          <span>FUNEL® Industrial Water Monitoring & Automation</span>
           <span>
-            WhatsApp: {site.contact_whatsapp} Â· Email: {site.contact_email}
+            WhatsApp: {site.contact_whatsapp} · Email: {site.contact_email}
           </span>
         </div>
       </div>
@@ -53,7 +53,7 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
         <div className="container">
           <a className="brand" href="/">
             <span className="brand-mark">F</span>
-            <span>FUNELÂ®</span>
+            <span>FUNEL®</span>
           </a>
           <div className="menu">
             <a href="/#products">Products</a>
@@ -64,17 +64,19 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
             <a href="/contact">Contact</a>
           </div>
           <div className="actions">
-            <div className="lang">
+            <div className="lang skiptranslate">
               <select 
                 id="lang-select"
                 className="bg-transparent border-none outline-none cursor-pointer font-bold text-sm"
               >
                 <option value="en">English</option>
-                <option value="es">EspaÃ±ol</option>
-                <option value="pt">PortuguÃªs</option>
-                <option value="ru">Ð ÑÑÑÐºÐ¸Ð¹</option>
-                <option value="ar">Ø§ÙØ¹Ø±Ø¨ÙØ©</option>
-                <option value="zh-CN">ä¸­æ</option>
+                <option value="es">Español</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="ar">العربية</option>
+                <option value="vi">Tiếng Việt</option>
+                <option value="th">ไทย</option>
+                <option value="zh-CN">中文</option>
               </select>
             </div>
             <a className="btn ghost" href="/admin/login">
@@ -89,7 +91,7 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
               Alibaba Store
             </a>
             <a className="btn primary" href="/contact">
-              Lequest Quote
+              Request Quote
             </a>
           </div>
         </div>
@@ -103,7 +105,7 @@ function Footer({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
     <footer className="footer">
       <div className="container">
         <div>
-          <b>FUNELÂ®</b>
+          <b>FUNEL®</b>
           <br />
           Industrial Water Monitoring & Automation Solutions
         </div>
@@ -140,6 +142,14 @@ export default async function RootLayout({
             document.addEventListener('DOMContentLoaded', function() {
               const select = document.getElementById('lang-select');
               if (select) {
+                // Initialize select to current cookie value if exists
+                const cookies = document.cookie.split(';');
+                const gtrans = cookies.find(c => c.trim().startsWith('googtrans='));
+                if (gtrans) {
+                  const val = gtrans.split('=')[1].split('/').pop();
+                  select.value = val || 'en';
+                }
+
                 select.addEventListener('change', function() {
                   const lang = this.value;
                   if (lang === 'en') {
@@ -172,4 +182,4 @@ export default async function RootLayout({
       </body>
     </html>
   );
-}
+              }
