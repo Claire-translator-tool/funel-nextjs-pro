@@ -139,10 +139,11 @@ export default async function RootLayout({
               }, 'google_translate_element');
             };
 
-            document.addEventListener('DOMContentLoaded', function() {
-              const select = document.getElementById('lang-select');
-              if (select) {
-                // Initialize select to current cookie value if exists
+            (function() {
+              function syncLang() {
+                const select = document.getElementById('lang-select');
+                if (!select) return setTimeout(syncLang, 100);
+                
                 const cookies = document.cookie.split(';');
                 const gtrans = cookies.find(c => c.trim().startsWith('googtrans='));
                 if (gtrans) {
@@ -150,19 +151,28 @@ export default async function RootLayout({
                   select.value = val || 'en';
                 }
 
-                select.addEventListener('change', function() {
+                select.onchange = function() {
                   const lang = this.value;
-                  if (lang === 'en') {
-                    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.funelsensor.com; path=/;';
-                  } else {
-                    document.cookie = 'googtrans=/en/' + lang + '; path=/';
-                    document.cookie = 'googtrans=/en/' + lang + '; domain=.funelsensor.com; path=/';
+                  const domains = [window.location.hostname, '.' + window.location.hostname.split('.').slice(-2).join('.')];
+                  const paths = ['/', '/zh'];
+                  
+                  // Clear ALL possible googtrans cookies
+                  domains.forEach(d => {
+                    paths.forEach(p => {
+                      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + d + '; path=' + p;
+                      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p;
+                    });
+                  });
+
+                  if (lang !== 'en') {
+                    document.cookie = 'googtrans=/en/' + lang + '; path=/; domain=' + window.location.hostname;
+                    document.cookie = 'googtrans=/en/' + lang + '; path=/; domain=.' + window.location.hostname.split('.').slice(-2).join('.');
                   }
                   window.location.reload();
-                });
+                };
               }
-            });
+              syncLang();
+            })();
           `}
         </Script>
         <Script 
@@ -177,9 +187,9 @@ export default async function RootLayout({
         <Footer site={site} />
         <div className="float">
           <a href={whatsappLink(site.contact_whatsapp)}>WhatsApp</a>
-          <a href={`mailto:${site.contact_email}`}>Email</a>
+          <a href={\`mailto:\${site.contact_email}\`}>Email</a>
         </div>
       </body>
     </html>
   );
-              }
+}
