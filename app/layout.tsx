@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(site.site_domain),
     title: {
       default: `${site.site_name} | Online Water Quality Analyzer Manufacturer`,
-      template: `${site.site_name} | %s`,
+      template: `%s | ${site.site_name}`,
     },
     description: site.company_tagline || defaultDescription,
     keywords: [
@@ -33,9 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
     },
     verification: {
-      google:
-        process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
-        "VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ",
+      google: "VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ",
     },
   };
 }
@@ -45,9 +43,9 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
     <>
       <div className="top">
         <div className="container">
-          <span>FUNEL® Industrial Water Monitoring & Automation</span>
+          <span>FUNELÂ® Industrial Water Monitoring & Automation</span>
           <span>
-            WhatsApp: {site.contact_whatsapp} · Email: {site.contact_email}
+            WhatsApp: {site.contact_whatsapp} Â· Email: {site.contact_email}
           </span>
         </div>
       </div>
@@ -55,7 +53,7 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
         <div className="container">
           <a className="brand" href="/">
             <span className="brand-mark">F</span>
-            <span>FUNEL®</span>
+            <span>FUNELÂ®</span>
           </a>
           <div className="menu">
             <a href="/#products">Products</a>
@@ -72,11 +70,11 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
                 className="bg-transparent border-none outline-none cursor-pointer font-bold text-sm"
               >
                 <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="pt">Português</option>
-                <option value="ru">Русский</option>
-                <option value="ar">العربية</option>
-                <option value="zh-CN">中文</option>
+                <option value="es">EspaÃ±ol</option>
+                <option value="pt">PortuguÃªs</option>
+                <option value="ru">Ð ÑÑÑÐºÐ¸Ð¹</option>
+                <option value="ar">Ø§ÙØ¹Ø±Ø¨ÙØ©</option>
+                <option value="zh-CN">ä¸­æ</option>
               </select>
             </div>
             <a className="btn ghost" href="/admin/login">
@@ -91,7 +89,7 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
               Alibaba Store
             </a>
             <a className="btn primary" href="/contact">
-              Request Quote
+              Lequest Quote
             </a>
           </div>
         </div>
@@ -105,7 +103,7 @@ function Footer({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
     <footer className="footer">
       <div className="container">
         <div>
-          <b>FUNEL®</b>
+          <b>FUNELÂ®</b>
           <br />
           Industrial Water Monitoring & Automation Solutions
         </div>
