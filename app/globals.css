@@ -676,7 +676,18 @@ select {
 
 
 /* Google Translate Suppression */
-.goog-te-banner-frame.skiptranslate { display: none !important; }
-body { top: 0px !important; }
-.goog-te-balloon-frame { display: none !important; }
-.goog-text-highlight { background: none !important; box-shadow: none !important; }
+.goog-te-banner-frame.skiptranslate, 
+.goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-te-menu-value,
+.goog-te-gadget-icon { 
+  display: none !important; 
+}
+body { 
+  top: 0px !important; 
+}
+.goog-text-highlight { 
+  background: none !important; 
+  box-shadow: none !important; 
+}
