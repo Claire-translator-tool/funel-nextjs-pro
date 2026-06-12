@@ -44,26 +44,41 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
     <>
       <div className="top">
         <div className="container">
-          <span>FUNEL Industrial Water Monitoring</span>
+          <span>FUNEL® Industrial Water Monitoring & Automation</span>
           <span>
-            WhatsApp: {site.contact_whatsapp} - Email: {site.contact_email}
+            WhatsApp: {site.contact_whatsapp} · Email: {site.contact_email}
           </span>
         </div>
       </div>
       <nav className="nav">
         <div className="container">
           <a className="brand" href="/">
-            FUNEL
+            <span className="brand-mark">F</span>
+            <span>FUNEL®</span>
           </a>
           <div className="menu">
-            <a href="/products">Products</a>
-            <a href="/#applications">Applications</a>
-            <a href="/#factory">Factory</a>
+            <a href="/#products">Products</a>
+            <a href="/#solutions">Solutions</a>
+            <a href="/#automation">Automation</a>
+            <a href="/#projects">Projects</a>
+            <a href="/#about">About</a>
             <a href="/contact">Contact</a>
           </div>
           <div className="actions">
-            <a className="btn ghost" href="/admin">
+            <div className="lang-links" aria-label="Language">
+              <a href="/">English</a>
+              <a href="/zh">中文</a>
+            </div>
+            <a className="btn ghost" href="/admin/login">
               Admin
+            </a>
+            <a
+              className="btn darkghost"
+              href="https://sxfne1688.en.alibaba.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Alibaba Store
             </a>
             <a className="btn primary" href="/contact">
               Request Quote
@@ -80,9 +95,9 @@ function Footer({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
     <footer className="footer">
       <div className="container">
         <div>
-          <b>{site.site_name}</b>
+          <b>FUNEL®</b>
           <br />
-          {site.company_tagline}
+          Industrial Water Monitoring & Automation Solutions
         </div>
         <div>
           Email: {site.contact_email}
@@ -94,7 +109,11 @@ function Footer({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
   );
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const site = await getSiteSettings();
 
   return (
