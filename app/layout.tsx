@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { getSiteSettings, whatsappLink } from "./site-settings";
+import Script from "next/script";
 
 const defaultDescription =
   "Funel Sensor supplies online water quality analyzers, sensors, transmitters and multi-parameter controllers for wastewater, drinking water and industrial process monitoring.";
@@ -12,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(site.site_domain),
     title: {
       default: `${site.site_name} | Online Water Quality Analyzer Manufacturer`,
-      template: `%s | ${site.site_name}`,
+      template: `${site.site_name} | %s`,
     },
     description: site.company_tagline || defaultDescription,
     keywords: [
@@ -65,9 +66,18 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
             <a href="/contact">Contact</a>
           </div>
           <div className="actions">
-            <div className="lang-links" aria-label="Language">
-              <a href="/">English</a>
-              <a href="/zh">中文</a>
+            <div className="lang">
+              <select 
+                id="lang-select"
+                className="bg-transparent border-none outline-none cursor-pointer font-bold text-sm"
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="ar">العربية</option>
+                <option value="zh-CN">中文</option>
+              </select>
             </div>
             <a className="btn ghost" href="/admin/login">
               Admin
@@ -118,7 +128,42 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <Script id="google-translate-config" strategy="afterInteractive">
+          {`
+            window.googleTranslateElementInit = function() {
+              new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+              }, 'google_translate_element');
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+              const select = document.getElementById('lang-select');
+              if (select) {
+                select.addEventListener('change', function() {
+                  const lang = this.value;
+                  if (lang === 'en') {
+                    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.funelsensor.com; path=/;';
+                  } else {
+                    document.cookie = 'googtrans=/en/' + lang + '; path=/';
+                    document.cookie = 'googtrans=/en/' + lang + '; domain=.funelsensor.com; path=/';
+                  }
+                  window.location.reload();
+                });
+              }
+            });
+          `}
+        </Script>
+        <Script 
+          src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" 
+          strategy="afterInteractive" 
+        />
+      </head>
       <body>
+        <div id="google_translate_element" style={{ display: 'none' }}></div>
         <Header site={site} />
         {children}
         <Footer site={site} />
