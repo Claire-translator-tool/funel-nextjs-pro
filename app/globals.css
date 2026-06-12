@@ -673,3 +673,10 @@ select {
     margin: 18px auto;
   }
   }
+
+
+/* Google Translate Suppression */
+.goog-te-banner-frame.skiptranslate { display: none !important; }
+body { top: 0px !important; }
+.goog-te-balloon-frame { display: none !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }
