@@ -161,8 +161,8 @@ export default async function HomePage() {
           </div>
           <div className="hero-media" style={{ background: "#fff" }}>
             <img
-              src={productImage(heroProduct)}
-              alt="FUNEL online water quality analyzers"
+              src="https://sc02.alicdn.com/kf/Hc39677e032cc42b1b230a67fe586116cA.png"
+              alt="FUNEL water monitoring project cases"
             />
             <div
               style={{
