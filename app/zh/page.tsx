@@ -139,7 +139,10 @@ export default async function ChineseHomePage() {
             </div>
           </div>
           <div className="hero-media" style={{ background: "#fff" }}>
-            <img src={productImage(heroProduct)} alt="FUNEL 在线水质分析仪" />
+            <img
+              src="https://sc02.alicdn.com/kf/Hc39677e032cc42b1b230a67fe586116cA.png"
+              alt="FUNEL 在线水质分析仪案例"
+            />
             <div className="hero-media-bottom">
               <div className="card pad">
                 <b>水质参数</b>
@@ -195,12 +198,12 @@ export default async function ChineseHomePage() {
                     <h3>{translated.name}</h3>
                     <p>{translated.summary}</p>
                     <div className="actions" style={{ marginTop: 18 }}>
-                      <a className="btn primary" href={`/products/${product.slug}`}>
+                      <a className="btn primary" href={"/products/" + product.slug}>
                         查看详情
                       </a>
                       <a
                         className="btn ghost"
-                        href={`/contact?product=${encodeURIComponent(translated.name)}`}
+                        href={"/contact?product=" + encodeURIComponent(translated.name)}
                       >
                         获取报价
                       </a>
@@ -322,7 +325,7 @@ export default async function ChineseHomePage() {
                 <a href={whatsappLink(site.contact_whatsapp)}>{site.contact_whatsapp}</a>
               </p>
               <p>
-                <b>Email:</b> <a href={`mailto:${site.contact_email}`}>{site.contact_email}</a>
+                <b>Email:</b> <a href={"mailto:" + site.contact_email}>{site.contact_email}</a>
               </p>
             </div>
           </div>
