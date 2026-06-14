@@ -11,15 +11,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
   const paths = new Set<string>();
 
-  pages.forEach((page) => paths.add(pagePath(page.slug)));
+  // Base paths
   paths.add("");
   paths.add("/zh");
   paths.add("/products");
   paths.add("/contact");
-  products.forEach((product) => paths.add(`/products/${product.slug}`));
+  paths.add("/cases");
+  paths.add("/solutions");
+  paths.add("/about");
+
+  // Dynamic pages
+  pages.forEach((page) => paths.add(pagePath(page.slug)));
+  products.forEach((product) => paths.add(\`/products/\${product.slug}\`));
 
   return Array.from(paths).map((path) => ({
-    url: `${site.site_domain}${path}`,
+    url: \`\${site.site_domain}\${path}\`,
     lastModified: new Date(),
+    changeFrequency: path === "" || path === "/zh" ? "daily" : "weekly",
+    priority: path === "" ? 1.0 : path === "/zh" ? 0.9 : 0.7,
   }));
 }
