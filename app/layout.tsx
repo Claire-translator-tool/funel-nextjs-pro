@@ -86,7 +86,7 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
                 <option value="zh-CN">中文</option>
               </select>
             </div>
-            <a className="btn ghost" href="/admin/login">
+            <a className="btn ghost" href="/admin/login" style={{ display: 'none' }}>
               Admin
             </a>
             <a
@@ -222,9 +222,8 @@ export default async function RootLayout({
         <Footer site={site} />
         <div className="float">
           <a href={whatsappLink(site.contact_whatsapp)}>WhatsApp</a>
-          <a href={\`mailto:\${site.contact_email}\`}>Email</a>
+          <a href={`mailto:${site.contact_email}`}>Email</a>
         </div>
       </body>
     </html>
   );
-      }
