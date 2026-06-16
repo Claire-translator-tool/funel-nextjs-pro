@@ -10,7 +10,8 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const file = form.get("file");
   if (!(file instanceof File) || file.size === 0) {
-    return NextResponse.redirect(new URL("/admin/media?error=no_file", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/admin/media?erro
+                                         r=no_file", request.url), { status: 303 });
   }
 
   try {
