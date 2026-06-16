@@ -177,7 +177,6 @@ export default async function RootLayout({
                 if (!select) return setTimeout(syncLang, 100);
                 
                 const cookies = document.cookie.split(';');
-                const gtrans = cookies.split(';');
                 const gtrans_val = cookies.find(c => c.trim().startsWith('googtrans='));
                 if (gtrans_val) {
                   const val = gtrans_val.split('=')[1].split('/').pop();
@@ -214,7 +213,8 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <div id="google_translate_element" style={{ display: 'none' }}></div>
+        <div id="google_translate_element" style={{ display: 'n
+      one' }}></div>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
@@ -228,4 +228,5 @@ export default async function RootLayout({
         </div>
       </body>
     </html>
-  
+  );
+}
