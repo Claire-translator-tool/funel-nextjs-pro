@@ -41,7 +41,8 @@ export async function POST(request: Request) {
       applications: lines(form.get("applications")),
       benefits: lines(form.get("benefits")),
       seo_title: String(form.get("seo_title") || "").trim() || null,
-      seo_description: String(form.get("seo_description") || "").trim() || null,
+      seo_description: String(form.get("seo_description") 
+                              || "").trim() || null,
       seo_keywords: lines(form.get("seo_keywords")),
       published: form.get("published") === "on",
       updated_at: new Date().toISOString(),
