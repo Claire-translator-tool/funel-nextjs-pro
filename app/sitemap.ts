@@ -3,6 +3,7 @@ import { getPublishedPages, pagePath } from "./page-content";
 import { getProducts } from "./products/product-data";
 import { getSiteSettings } from "./site-settings";
 
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [site, pages, products] = await Promise.all([
     getSiteSettings(),
@@ -10,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getProducts(),
   ]);
   const paths = new Set<string>();
+
 
   // Base paths
   paths.add("");
@@ -20,12 +22,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   paths.add("/solutions");
   paths.add("/about");
 
+
   // Dynamic pages
   pages.forEach((page) => paths.add(pagePath(page.slug)));
   products.forEach((product) => paths.add(`/products/${product.slug}`));
 
+
   return Array.from(paths).map((path) => ({
-    url: \`\${site.site_domain}\${path}\`,
+    url: `${site.site_domain}${path}`,
     lastModified: new Date(),
     changeFrequency: path === "" || path === "/zh" ? "daily" : "weekly",
     priority: path === "" ? 1.0 : path === "/zh" ? 0.9 : 0.7,
