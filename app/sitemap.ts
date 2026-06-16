@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic pages
   pages.forEach((page) => paths.add(pagePath(page.slug)));
-  products.forEach((product) => paths.add(\`/products/\${product.slug}\`));
+  products.forEach((product) => paths.add(`/products/${product.slug}`));
 
   return Array.from(paths).map((path) => ({
     url: \`\${site.site_domain}\${path}\`,
