@@ -212,7 +212,7 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <div id="google_translate_element" style={{ display: 'none' }}></div>
+        <div id="google_translate_element" style={{ display: 'n}}one' }}></div>}}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
@@ -227,3 +227,4 @@ export default async function RootLayout({
       </body>
     </html>
   );
+}
