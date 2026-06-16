@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       category: String(form.get("category") || "").trim() || null,
       summary: String(form.get("summary") || "").trim() || null,
       image_url: imageUrl || "/images/project-case.png",
+      
       specs: lines(form.get("specs")),
       published: true,
       updated_at: new Date().toISOString(),
