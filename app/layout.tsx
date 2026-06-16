@@ -9,11 +9,8 @@ const defaultDescription =
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteSettings();
 
-  return {}
-    
-    metadataBase: new URL(site.site_domain),}}}
-  
-  
+  return {
+    metadataBase: new URL(site.site_domain),
     title: {
       default: `${site.site_name} | Online Water Quality Analyzer Manufacturer`,
       template: `%s | ${site.site_name}`,
@@ -180,9 +177,10 @@ export default async function RootLayout({
                 if (!select) return setTimeout(syncLang, 100);
                 
                 const cookies = document.cookie.split(';');
-                const gtrans = cookies.find(c => c.trim().startsWith('googtrans='));
-                if (gtrans) {
-                  const val = gtrans.split('=')[1].split('/').pop();
+                const gtrans = cookies.split(';');
+                const gtrans_val = cookies.find(c => c.trim().startsWith('googtrans='));
+                if (gtrans_val) {
+                  const val = gtrans_val.split('=')[1].split('/').pop();
                   select.value = val || 'en';
                 }
 
@@ -191,6 +189,7 @@ export default async function RootLayout({
                   const domains = [window.location.hostname, '.' + window.location.hostname.split('.').slice(-2).join('.')];
                   const paths = ['/', '/zh'];
                   
+                  // Clear ALL possible googtrans cookies
                   domains.forEach(d => {
                     paths.forEach(p => {
                       document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + d + '; path=' + p;
@@ -215,7 +214,7 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <div id="google_translate_element" style={{ display: 'n}}one' }}></div>}}
+        <div id="google_translate_element" style={{ display: 'none' }}></div>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
@@ -229,5 +228,4 @@ export default async function RootLayout({
         </div>
       </body>
     </html>
-  );
-}
+  
