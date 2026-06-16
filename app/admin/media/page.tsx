@@ -66,7 +66,9 @@ export default async function AdminMediaPage({ searchParams }: Props) {
               />
               <b>{image.name}</b>
               <input className="input" readOnly value={image.url} />
-              <a className="btn ghost" href={image.url} target="_blank" rel="noreferrer">Open image</a>
+              <div className="actions" style={{ marginTop: 12 }}>
+                 <a className="btn ghost" href={image.url} target="_blank" rel="noreferrer">Open image</a>
+              </div>
             </div>
           ))}
         </div>
