@@ -130,6 +130,7 @@ export async function listProductImages() {
     body: JSON.stringify({
       prefix: "products",
       limit: 100,
+      
       offset: 0,
       sortBy: { column: "created_at", order: "desc" },
     }),
