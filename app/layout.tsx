@@ -9,8 +9,10 @@ const defaultDescription =
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteSettings();
 
-  return {
-    metadataBase: new URL(site.site_domain),}
+  return {}
+    
+    metadataBase: new URL(site.site_domain),}}}
+  
   
     title: {
       default: `${site.site_name} | Online Water Quality Analyzer Manufacturer`,
