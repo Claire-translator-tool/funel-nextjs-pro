@@ -15,8 +15,10 @@ export async function POST(request: Request) {
 
   try {
     const imageUrl = await uploadImage(file, "upload");
-    return NextResponse.redirect(new URL(`/admin/media?uploaded=1&url=${encodeURIComponent(imageUrl)}`, request.url), { status: 303 });
-  } catch (err) {
-    return NextResponse.redirect(new URL(`/admin/media?error=upload_failed`, request.url), { status: 303 });
+    return NextResponse.redirect(new URL(`/admin/media?uploaded=1&url=${encodeURIComponent(imageUrl)}`, request.url), {
+      status: 303,
+    });
+  } catch {
+    return NextResponse.redirect(new URL("/admin/media?error=upload_failed", request.url), { status: 303 });
   }
 }
