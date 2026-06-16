@@ -175,4 +175,5 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         </div>
       </main>
     </div>
-  "
+  );
+}
