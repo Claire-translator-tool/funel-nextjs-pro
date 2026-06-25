@@ -1,24 +1,45 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { uploadImage } from "../../../../../lib/admin-storage";
+import { requireAdminForApi } from "@/lib/admin-api";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  if (!(await cookies()).get("funel_admin_token")) {
+  const auth = await requireAdminForApi();
+
+  if (!auth.ok) {
     return NextResponse.redirect(new URL("/admin/login", request.url), { status: 303 });
   }
 
-  const form = await request.formData();
-  const file = form.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    return NextResponse.redirect(new URL("/admin/media?error=no_file", request.url), { status: 303 });
+  const formData = await request.formData();
+  const forward = new FormData();
+  const file = formData.get("file");
+
+  if (file instanceof File) {
+    forward.append("file", file);
   }
 
-  try {
-    const imageUrl = await uploadImage(file, "upload");
-    return NextResponse.redirect(new URL(`/admin/media?uploaded=1&url=${encodeURIComponent(imageUrl)}`, request.url), {
-      status: 303,
-    });
-  } catch {
-    return NextResponse.redirect(new URL("/admin/media?error=upload_failed", request.url), { status: 303 });
+  forward.append("folder", String(formData.get("folder") || "products"));
+  forward.append("slug", String(formData.get("slug") || "media"));
+
+  const response = await fetch(new URL("/api/admin/media", request.url), {
+    method: "POST",
+    body: forward,
+    headers: {
+      cookie: request.headers.get("cookie") || "",
+    },
+  });
+  const data = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
+
+  if (!response.ok || !data.url) {
+    return NextResponse.redirect(
+      new URL(`/admin/media?error=${encodeURIComponent(data.error || "upload_failed")}`, request.url),
+      { status: 303 }
+    );
   }
+
+  return NextResponse.redirect(
+    new URL(`/admin/media?uploaded=1&url=${encodeURIComponent(data.url)}`, request.url),
+    { status: 303 }
+  );
 }
