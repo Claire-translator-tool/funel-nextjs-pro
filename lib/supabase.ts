@@ -1,25 +1,35 @@
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const key =
-  process.env.SUPABASE_SECRET_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "";
+export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+export const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-function headers() {
-  const h: Record<string, string> = { apikey: key };
-  if (key && !key.startsWith("sb_")) h.Authorization = `Bearer ${key}`;
-  return h;
+export function hasSupabaseAdminConfig() {
+  return !!(supabaseUrl && supabaseServiceRoleKey);
 }
 
-export async function supabaseRest<T = any>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${url}/rest/v1/${path}`, {
+export async function supabaseRest<T = any>(path: string, options: any = {}): Promise<T> {
+  const key = options.service !== false ? supabaseServiceRoleKey : supabaseAnonKey;
+  const res = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
     ...options,
-    headers: { ...headers(), ...(options.headers || {}) },
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      ...(options.headers || {}),
+    },
   });
+  if (res.status === 204) return undefined as any;
   if (!res.ok) {
-    const error = await res.text();
-    throw new Error(`Supabase error: ${error}`);
+    const err = await res.text();
+    throw new Error(`Supabase error: ${err}`);
   }
-  if (options.headers && (options.headers as any).Prefer === "return=minimal") return [] as any;
   return res.json();
-                             }
+}
+
+export async function getSupabaseUser(token: string) {
+  const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.ok ? res.json() : null;
+}
