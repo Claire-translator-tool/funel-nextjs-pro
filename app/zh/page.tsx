@@ -4,7 +4,7 @@ import { getSiteSettings, whatsappLink } from "../site-settings";
 export const metadata = {
   title: "FUNEL 工业水质在线监测与过程自动化解决方案",
   description:
-    "FUNEL 提供在线水质分析仪、数字传感器、多参数控制器、PLC 控制柜和水质监测系统，适用于污水、市政供水、工业过程水和系统集成项目。",
+    "FUNEL 提供在线水质分析仪、数字传感器、多参数控制器、PLC 控制柜 and 水质监测系统，适用于污水、市政供水、工业过程水和系统集成项目。",
   alternates: {
     canonical: "/zh",
     languages: {
@@ -18,7 +18,7 @@ const productZh: Record<string, { name: string; category: string; summary: strin
   "pfdo-800-dissolved-oxygen-analyzer": {
     name: "在线溶解氧分析仪",
     category: "溶解氧",
-    summary: "适用于曝气池、污水处理、水产养殖 and 工业过程水的在线溶解氧监测。",
+    summary: "适用于曝气池、污水处理、水产养殖和工业过程水的在线溶解氧监测。",
   },
   "ph-orp-online-analyzer": {
     name: "在线 pH / ORP 分析仪",
@@ -53,11 +53,11 @@ const applications = [
   ["工业过程水", "循环冷却水、锅炉水、加药、回用水和排放监测。"],
   ["地表水与环保", "河流、湖泊、地下水和环保站在线监测。"],
   ["水产养殖", "溶解氧、pH、温度、氨氮和水质安全监测。"],
-  ["系统集成商", "分析仪、传感器、控制器、控制柜 and 数据集成支持。"],
+  ["系统集成商", "分析仪、传感器、控制器、控制柜和数据集成支持。"],
 ];
 
 const support = [
-  ["先确认配置", "根据参数、水样类型、输出信号、量程、数量 and 安装方式推荐型号。"],
+  ["先确认配置", "根据参数、水样类型、输出信号、量程、数量和安装方式推荐型号。"],
   ["资料与报价", "提供资料表、接线说明、通讯方式和报价信息，方便工程对比。"],
   ["样品与 OEM", "可沟通样品、贴牌、备件和经销商项目需求。"],
   ["系统集成", "支持分析仪、传感器、PLC 控制柜、Modbus、4-20 mA 和 SCADA 项目。"],
@@ -84,7 +84,7 @@ const faqs = [
   ["下单前可以提供资料吗？", "可以。确认产品和应用后，可提供资料表、配置建议和接线说明。"],
 ];
 
-function zhProduct(product: Awaited<ReturnType<typeof getProducts>>[number]) {
+function zhProduct(product: any) {
   const translated = productZh[product.slug];
   return {
     name: translated?.name || product.name,
@@ -139,10 +139,7 @@ export default async function ChineseHomePage() {
             </div>
           </div>
           <div className="hero-media" style={{ background: "#fff" }}>
-            <img
-              src="https://sc02.alicdn.com/kf/Hc39677e032cc42b1b230a67fe586116cA.png"
-              alt="FUNEL 在线水质分析仪案例"
-            />
+            <img src="https://sc02.alicdn.com/kf/Hc39677e032cc42b1b230a67fe586116cA.png" alt="FUNEL 在线水质分析仪案例" />
             <div className="hero-media-bottom">
               <div className="card pad">
                 <b>水质参数</b>
@@ -198,12 +195,12 @@ export default async function ChineseHomePage() {
                     <h3>{translated.name}</h3>
                     <p>{translated.summary}</p>
                     <div className="actions" style={{ marginTop: 18 }}>
-                      <a className="btn primary" href={"/products/" + product.slug}>
+                      <a className="btn primary" href={`/products/${product.slug}`}>
                         查看详情
                       </a>
                       <a
                         className="btn ghost"
-                        href={"/contact?product=" + encodeURIComponent(translated.name)}
+                        href={`/contact?product=${encodeURIComponent(translated.name)}`}
                       >
                         获取报价
                       </a>
@@ -311,6 +308,23 @@ export default async function ChineseHomePage() {
         </div>
       </section>
 
+      <section className="section">
+        <div className="container split">
+          <div className="section-title centered">
+            <small>常见问题</small>
+            <h2>常见买家咨询</h2>
+          </div>
+          <div className="grid">
+            {faqs.map(([question, answer]) => (
+              <article className="card pad" key={question}>
+                <h3>{question}</h3>
+                <p>{answer}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="contact" className="section dark">
         <div className="container split">
           <div>
@@ -325,7 +339,7 @@ export default async function ChineseHomePage() {
                 <a href={whatsappLink(site.contact_whatsapp)}>{site.contact_whatsapp}</a>
               </p>
               <p>
-                <b>Email:</b> <a href={"mailto:" + site.contact_email}>{site.contact_email}</a>
+                <b>Email:</b> <a href={`mailto:${site.contact_email}`}>{site.contact_email}</a>
               </p>
             </div>
           </div>
