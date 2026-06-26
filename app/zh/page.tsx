@@ -4,7 +4,7 @@ import { getSiteSettings, whatsappLink } from "../site-settings";
 export const metadata = {
   title: "FUNEL 工业水质在线监测与过程自动化解决方案",
   description:
-    "FUNEL 提供在线水质分析仪、数字传感器、多参数控制器、PLC 控制柜 and 水质监测系统，适用于污水、市政供水、工业过程水和系统集成项目。",
+    "FUNEL 提供在线水质分析仪、数字传感器、多参数控制器、PLC 控制柜和水质监测系统，适用于污水、市政供水、工业过程水和系统集成项目。",
   alternates: {
     canonical: "/zh",
     languages: {
@@ -39,11 +39,6 @@ const productZh: Record<string, { name: string; category: string; summary: strin
     name: "多参数水质控制器",
     category: "多参数控制器",
     summary: "可接入多路在线水质传感器和分析通道，适合控制柜和集成系统项目。",
-  },
-  "cod-ammonia-nitrogen-analyzer": {
-    name: "COD 与氨氮在线分析仪",
-    category: "营养盐监测",
-    summary: "适用于污水排放、过程控制和环保达标项目的 COD 与氨氮在线监测。",
   },
 };
 
@@ -110,7 +105,7 @@ export default async function ChineseHomePage() {
             <div className="eyebrow">工程项目型水质监测方案</div>
             <h1>工业水质在线监测与过程自动化解决方案</h1>
             <p>
-              FUNEL 提供在线水质分析仪、数字传感器、控制器、自动化控制柜和集成监测系统，适用于市政供水、污水处理、工业过程水和智慧水务项目。
+              FUNEL 提供在线水质分析仪、数字传感器、控制器、自动化控制柜 and 集成监测系统，适用于市政供水、污水处理、工业过程水和智慧水务项目。
             </p>
             <div className="actions" style={{ marginTop: 28 }}>
               <a className="btn primary" href="/contact">
@@ -182,7 +177,7 @@ export default async function ChineseHomePage() {
           <div className="section-title centered">
             <small>产品中心</small>
             <h2>在线分析仪、传感器和监测系统</h2>
-            <p>适合项目型水质监测、系统集成和工业过程控制。</p>
+            <p>适合项目型水质监测、系统集成 and 工业过程控制。</p>
           </div>
           <div className="grid three">
             {featured.map((product) => {
@@ -264,7 +259,7 @@ export default async function ChineseHomePage() {
             <div className="card pad">
               <span className="pill">PLC / SCADA</span>
               <h3>远程监测系统架构</h3>
-              <p>适用于水质监测和自动化项目的系统网络、PLC/DCS 控制 and SCADA 屏幕展示。</p>
+              <p>适用于水质监测 and 自动化项目的系统网络、PLC/DCS 控制 and SCADA 屏幕展示。</p>
             </div>
           </div>
           <div className="process-grid">
@@ -331,15 +326,15 @@ export default async function ChineseHomePage() {
             <div className="section-title">
               <small>联系我们</small>
               <h2>发送你的项目需求</h2>
-              <p>请告诉我们水样类型、监测参数、量程、安装现场、输出信号和通讯要求。</p>
+              <p>请告诉我们水样类型、监测参数、量程、安装现场、输出信号 and 通讯要求。</p>
             </div>
             <div className="card pad contact-card-dark">
               <p>
                 <b>WhatsApp:</b>{" "}
-                <a href={whatsappLink(site.contact_whatsapp)}>{site.contact_whatsapp}</a>
+                <a href={whatsappLink(site.contact.whatsapp)}>{site.contact.whatsapp}</a>
               </p>
               <p>
-                <b>Email:</b> <a href={`mailto:${site.contact_email}`}>{site.contact_email}</a>
+                <b>Email:</b> <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
               </p>
             </div>
           </div>
