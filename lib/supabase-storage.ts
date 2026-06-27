@@ -1,6 +1,11 @@
 import { supabaseServiceRoleKey, supabaseUrl } from "./supabase";
 const bucketName = "product-images";
 
+async function storageError(response: Response, fallback: string) {
+  const detail = await response.text().catch(() => "");
+  return `${fallback}: ${response.status}${detail ? ` - ${detail}` : ""}`;
+}
+
 function storageHeaders(contentType?: string) {
   const headers: Record<string, string> = { apikey: supabaseServiceRoleKey };
   if (supabaseServiceRoleKey && !supabaseServiceRoleKey.startsWith("sb_")) {
@@ -19,7 +24,7 @@ export async function uploadPublicImage({ file, path }: { file: File; path: stri
     },
     body: file
   });
-  if (!res.ok) throw new Error("Upload failed");
+  if (!res.ok) throw new Error(await storageError(res, "Product image upload failed"));
   return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${path}`;
 }
 
@@ -29,7 +34,7 @@ export async function uploadPublicImageBuffer({ buffer, path, contentType, bucke
     headers: { ...storageHeaders(contentType), "x-upsert": "true" },
     body: buffer
   });
-  if (!res.ok) throw new Error("Upload failed");
+  if (!res.ok) throw new Error(await storageError(res, "Media upload failed"));
   return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
 }
 
