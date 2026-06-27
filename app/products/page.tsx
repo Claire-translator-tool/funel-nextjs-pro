@@ -1,5 +1,8 @@
 import { getProducts, productImage } from "./product-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Online Water Quality Analyzer Products",
   description: "Funel Sensor online water quality analyzers and controllers for wastewater and industrial monitoring.",
