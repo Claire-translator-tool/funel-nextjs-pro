@@ -1,95 +1,110 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import type { CmsProduct } from "@/lib/types";
 
 type ProductManagerProps = { products: CmsProduct[] };
 
 export default function ProductManager({ products }: ProductManagerProps) {
-  const router = useRouter();
-  const [saving, setSaving] = useState("");
-
-  async function saveProduct(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const id = form.dataset.id;
-    setSaving(id || "new");
-    const formData = new FormData(form);
-    const payload: Record<string, FormDataEntryValue | string[]> = Object.fromEntries(formData.entries());
-    
-    // Convert textareas to arrays for specific fields
-    const arrayFields = ['specs', 'applications', 'benefits', 'seo_keywords'];
-    arrayFields.forEach(f => {
-      if (payload[f]) payload[f] = String(payload[f]).split(/\n/).map(s => s.trim()).filter(Boolean);
-    });
-
-    await fetch(id ? `/api/admin/products/${id}` : "/api/admin/products", {
-      method: id ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    setSaving("");
-    router.refresh();
-  }
-
   return (
-    <div className="grid gap-6 text-left">
-      <section className="card pad bg-green-50 border-green-200">
-        <h2 className="text-xl font-bold">Add new product</h2>
-        <ProductForm onSubmit={saveProduct} saving={saving === "new"} />
+    <div className="admin-stack">
+      <section className="admin-panel green-panel product-editor-panel">
+        <h2>Add new product 添加新产品</h2>
+        <ProductForm action="/api/admin/products/create" />
       </section>
       {products.map((p) => (
-        <section key={p.id} className="card pad bg-white border-slate-200">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">{p.name}</h2>
-            <Link href={`/products/${p.slug}`} className="btn ghost">Preview</Link>
+        <section key={p.id || p.slug} className="admin-panel product-editor-panel">
+          <div className="admin-panel-head">
+            <div>
+              <h2>{p.name}</h2>
+              <p>{p.model || p.category || p.slug}</p>
+            </div>
+            <Link href={`/products/${p.slug}`} className="btn ghost">
+              Preview 预览
+            </Link>
           </div>
-          <ProductForm product={p} onSubmit={saveProduct} saving={saving === p.id} />
+          <ProductForm product={p} action="/api/admin/products/update" />
         </section>
       ))}
     </div>
   );
 }
 
-function ProductForm({ product, onSubmit, saving }: any) {
-  const [imageUrl, setImageUrl] = useState(product?.image_url || "");
-  const [uploading, setUploading] = useState(false);
+function listValue(value?: string[] | null) {
+  return Array.isArray(value) ? value.join("\n") : "";
+}
 
-  async function uploadImage(e: any) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const data = new FormData();
-    data.append("file", file);
-    data.append("slug", product?.slug || "upload");
-    const res = await fetch("/api/admin/media", { method: "POST", body: data });
-    const json = await res.json();
-    if (json.url) setImageUrl(json.url);
-    setUploading(false);
-  }
-
+function ProductForm({ product, action }: { product?: CmsProduct; action: string }) {
   return (
-    <form data-id={product?.id} onSubmit={onSubmit} className="grid gap-4">
-      <div className="grid md:grid-cols-2 gap-4">
-        <label>Name<input name="name" className="input" defaultValue={product?.name} required /></label>
-        <label>Slug<input name="slug" className="input" defaultValue={product?.slug} required /></label>
+    <form action={action} method="post" encType="multipart/form-data" className="product-editor">
+      {product?.id ? <input type="hidden" name="id" value={product.id} /> : null}
+      <div className="form-row three-cols">
+        <label>
+          Slug 蛞蝓
+          <input name="slug" className="input" defaultValue={product?.slug || ""} required />
+        </label>
+        <label>
+          Model 型号
+          <input name="model" className="input" defaultValue={product?.model || ""} />
+        </label>
+        <label>
+          Category 类别/种类
+          <input name="category" className="input" defaultValue={product?.category || ""} />
+        </label>
       </div>
-      <label>Summary<textarea name="summary" className="input" defaultValue={product?.summary} rows={3} /></label>
-      <div className="grid md:grid-cols-2 gap-4">
-        <label>Upload Image<input type="file" onChange={uploadImage} disabled={uploading} /></label>
-        <label>Image URL<input name="image_url" className="input" value={imageUrl} onChange={e => setImageUrl(e.target.value)} /></label>
+      <label>
+        Name 名称
+        <input name="name" className="input" defaultValue={product?.name || ""} required />
+      </label>
+      <label>
+        Summary 摘要/总结
+        <textarea name="summary" className="input" defaultValue={product?.summary || ""} rows={4} />
+      </label>
+      <div className="form-row">
+        <label>
+          Upload Image 上传图片
+          <input type="file" name="image_file" accept="image/*" />
+        </label>
+        <label>
+          Image URL 图片链接
+          <input name="image_url" className="input" defaultValue={product?.image_url || ""} />
+        </label>
       </div>
-      <div className="grid lg:grid-cols-3 gap-4">
-        <label>Specs<textarea name="specs" className="input" defaultValue={product?.specs?.join("\n")} rows={5} /></label>
-        <label>Apps<textarea name="applications" className="input" defaultValue={product?.applications?.join("\n")} rows={5} /></label>
-        <label>Benefits<textarea name="benefits" className="input" defaultValue={product?.benefits?.join("\n")} rows={5} /></label>
+      <div className="form-row three-cols">
+        <label>
+          Specs 规格
+          <textarea name="specs" className="input" defaultValue={listValue(product?.specs)} rows={6} />
+        </label>
+        <label>
+          Applications 应用
+          <textarea name="applications" className="input" defaultValue={listValue(product?.applications)} rows={6} />
+        </label>
+        <label>
+          Benefits 优势
+          <textarea name="benefits" className="input" defaultValue={listValue(product?.benefits)} rows={6} />
+        </label>
       </div>
-      <div className="flex justify-between items-center mt-4">
-        <label className="flex items-center gap-2"><input type="checkbox" name="published" defaultChecked={product?.published !== false} /> Published</label>
-        <button type="submit" disabled={saving} className="btn primary">{saving ? "Saving..." : "Save Product"}</button>
+      <div className="form-row">
+        <label>
+          SEO title SEO 标题
+          <input name="seo_title" className="input" defaultValue={product?.seo_title || ""} />
+        </label>
+        <label>
+          SEO keywords SEO 关键词
+          <textarea name="seo_keywords" className="input" defaultValue={listValue(product?.seo_keywords)} rows={3} />
+        </label>
+      </div>
+      <label>
+        SEO description SEO 描述
+        <textarea name="seo_description" className="input" defaultValue={product?.seo_description || ""} rows={3} />
+      </label>
+      <div className="editor-actions">
+        <label className="checkbox-line">
+          <input type="checkbox" name="published" defaultChecked={product?.published !== false} />
+          Published 已发布
+        </label>
+        <button type="submit" className="btn primary">
+          Save product 保存产品
+        </button>
       </div>
     </form>
   );
-  }
+}
