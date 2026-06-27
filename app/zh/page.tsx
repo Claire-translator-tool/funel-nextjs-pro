@@ -331,10 +331,10 @@ export default async function ChineseHomePage() {
             <div className="card pad contact-card-dark">
               <p>
                 <b>WhatsApp:</b>{" "}
-                <a href={whatsappLink(site.contact.whatsapp)}>{site.contact.whatsapp}</a>
+                <a href={whatsappLink(site.contact_whatsapp)}>{site.contact_whatsapp}</a>
               </p>
               <p>
-                <b>Email:</b> <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+                <b>Email:</b> <a href={`mailto:${site.contact_email}`}>{site.contact_email}</a>
               </p>
             </div>
           </div>
