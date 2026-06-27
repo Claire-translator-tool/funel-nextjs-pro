@@ -107,7 +107,7 @@ async function findProductDir(extractRoot: string, product: ProductImportRow) {
   return (
     dirs.find((dir) => needles.includes(path.basename(dir).toLowerCase())) ||
     dirs.find((dir) => needles.some((needle) => path.basename(dir).toLowerCase().includes(needle))) ||
-    extractRoot
+    null
   );
 }
 
@@ -125,6 +125,10 @@ export async function processAndUploadProductImages(params: {
 }): Promise<ImportedMedia> {
   const { extractRoot, product } = params;
   const productDir = await findProductDir(extractRoot, product);
+  if (!productDir) {
+    return { mainImageUrl: "/images/industrial-water-quality-analyzers.png", uploadedImages: [] };
+  }
+
   const allFiles = await listFilesRecursive(productDir);
   const imageFiles = allFiles.filter((filePath) => IMAGE_EXTENSIONS.has(path.extname(filePath).toLowerCase()));
 
