@@ -84,6 +84,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, url, path });
     }
   } catch (error) {
+    console.error("Media upload failed", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Image upload failed.",
