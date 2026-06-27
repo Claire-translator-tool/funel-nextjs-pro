@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import * as XLSX from "xlsx";
 import type {
   FaqImportRow,
@@ -86,7 +87,8 @@ function normalizeFaqRow(row: Record<string, unknown>): FaqImportRow | null {
 }
 
 export function parseFunelProductWorkbook(xlsxPath: string) {
-  const workbook = XLSX.readFile(xlsxPath);
+  const workbookBuffer = fs.readFileSync(xlsxPath);
+  const workbook = XLSX.read(workbookBuffer, { type: "buffer" });
   const productRows = sheetToRows(getSheet(workbook, ["Products", "Product"]));
 
   if (!productRows.length) {
