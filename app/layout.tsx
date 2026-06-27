@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { getSiteSettings, whatsappLink } from "./site-settings";
+import SiteChrome from "@/components/SiteChrome";
+import { getSiteSettings } from "./site-settings";
 import Script from "next/script";
 
 const defaultDescription =
@@ -43,84 +44,6 @@ export async function generateMetadata(): Promise<Metadata> {
       google: "VMyAmPGnBrPR92tHmY9kmK2WFE3ybvZWKYloLDGz9tQ",
     },
   };
-}
-
-function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> }) {
-  return (
-    <>
-      <div className="top">
-        <div className="container">
-          <span>FUNEL® Industrial Water Monitoring & Automation</span>
-          <span>
-            WhatsApp: {site.contact_whatsapp} · Email: {site.contact_email}
-          </span>
-        </div>
-      </div>
-      <nav className="nav">
-        <div className="container">
-          <a className="brand" href="/">
-            <span className="brand-mark">F</span>
-            <span>FUNEL®</span>
-          </a>
-          <div className="menu">
-            <a href="/#products">Products</a>
-            <a href="/#solutions">Solutions</a>
-            <a href="/#automation">Automation</a>
-            <a href="/#projects">Projects</a>
-            <a href="/#about">About</a>
-            <a href="/contact">Contact</a>
-          </div>
-          <div className="actions">
-            <div className="lang skiptranslate">
-              <select 
-                id="lang-select"
-                className="bg-transparent border-none outline-none cursor-pointer font-bold text-sm"
-              >
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="pt">Português</option>
-                <option value="ru">Русский</option>
-                <option value="ar">العربية</option>
-                <option value="vi">Tiếng Việt</option>
-                <option value="th">ไทย</option>
-                <option value="zh-CN">中文</option>
-              </select>
-            </div>
-            <a
-              className="btn darkghost"
-              href="https://sxfne1688.en.alibaba.com"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Alibaba Store
-            </a>
-            <a className="btn primary" href="/contact">
-              Request Quote
-            </a>
-          </div>
-        </div>
-      </nav>
-    </>
-  );
-}
-
-function Footer({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> }) {
-  return (
-    <footer className="footer">
-      <div className="container">
-        <div>
-          <b>FUNEL®</b>
-          <br />
-          Industrial Water Monitoring & Automation Solutions
-        </div>
-        <div>
-          Email: {site.contact_email}
-          <br />
-          WhatsApp: {site.contact_whatsapp}
-        </div>
-      </div>
-    </footer>
-  );
 }
 
 export default async function RootLayout({
@@ -215,13 +138,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
         />
-        <Header site={site} />
-        {children}
-        <Footer site={site} />
-        <div className="float">
-          <a href={whatsappLink(site.contact_whatsapp)}>WhatsApp</a>
-          <a href={`mailto:${site.contact_email}`}>Email</a>
-        </div>
+        <SiteChrome site={site}>{children}</SiteChrome>
       </body>
     </html>
   );
