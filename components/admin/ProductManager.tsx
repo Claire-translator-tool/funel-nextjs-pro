@@ -17,7 +17,7 @@ export default function ProductManager({ products }: ProductManagerProps) {
     const id = form.dataset.id;
     setSaving(id || "new");
     const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
+    const payload: Record<string, FormDataEntryValue | string[]> = Object.fromEntries(formData.entries());
     
     // Convert textareas to arrays for specific fields
     const arrayFields = ['specs', 'applications', 'benefits', 'seo_keywords'];
