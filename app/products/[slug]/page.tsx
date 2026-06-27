@@ -1,19 +1,17 @@
 import { notFound } from "next/navigation";
 import { getSiteSettings } from "../../site-settings";
-import { getProductBySlug, getProducts, productImage } from "../product-data";
+import { getProductBySlug, productImage } from "../product-data";
 
 type Props = { params: Promise<{ slug: string }> };
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const fallbackSpecs = ["4-20mA / RS485 Modbus", "Continuous online monitoring", "Project configuration support"];
 const fallbackApps = ["Wastewater treatment", "Drinking water", "Industrial process water"];
 const fallbackBenefits = ["Fast quotation support", "Datasheet and sample help", "OEM and system integration support"];
 
 function clean(items?: string[] | null) {
   return Array.isArray(items) ? items.filter(Boolean) : [];
-}
-
-export async function generateStaticParams() {
-  const products = await getProducts();
-  return products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({ params }: Props) {
