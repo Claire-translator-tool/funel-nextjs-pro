@@ -16,12 +16,13 @@ export default function MediaLibraryManager({ images }: any) {
     const data = new FormData();
     data.append("file", file);
     const response = await fetch("/api/admin/media", { method: "POST", body: data });
+    const payload = await response.json().catch(() => null);
     setUploading(false);
-    if (response.ok) {
-      setMessage("Image uploaded. Refreshing library...");
+    if (response.ok && payload?.url) {
+      setMessage(`Image uploaded. 图片已上传：${payload.url}`);
       window.location.reload();
     } else {
-      setMessage("Upload failed. Please try another image.");
+      setMessage(`Upload failed: ${payload?.error || "Please try another image."}`);
     }
   }
 
@@ -38,7 +39,7 @@ export default function MediaLibraryManager({ images }: any) {
           <span>{uploading ? "Uploading..." : selected || "Choose image"}</span>
           <small>PNG, JPG, WEBP and other browser image formats</small>
         </label>
-        {message ? <span className={message.includes("failed") ? "upload-status error" : "upload-status"}>{message}</span> : null}
+        {message ? <span className={message.startsWith("Upload failed") ? "upload-status error" : "upload-status"}>{message}</span> : null}
       </section>
       <div className="media-grid">
         {images.length === 0 ? (
