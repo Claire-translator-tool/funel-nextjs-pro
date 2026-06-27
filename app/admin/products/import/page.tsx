@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AdminShell from "@/components/admin/AdminShell";
 import ProductImportForm from "@/components/admin/ProductImportForm";
 import { requireAdminPage } from "@/lib/admin-page";
@@ -12,15 +13,17 @@ export default async function ProductImportPage() {
 
   return (
     <AdminShell admin={admin}>
-      <div className="grid gap-6">
+      <div className="admin-page-head">
         <div>
-          <h1 className="text-3xl font-bold text-green-950">Bulk import products</h1>
-          <p className="mt-1 text-slate-600">
-            Upload a product ZIP package to create or update product records and images.
-          </p>
+          <span className="admin-kicker">Batch upload</span>
+          <h1>Bulk import products 批量导入产品</h1>
+          <p>上传产品 ZIP 包，一次性创建或更新产品信息和图片。</p>
         </div>
-        <ProductImportForm />
+        <Link href="/admin/products" className="btn ghost admin-back-btn">
+          Back to products 返回产品页面
+        </Link>
       </div>
+      <ProductImportForm />
     </AdminShell>
   );
 }
