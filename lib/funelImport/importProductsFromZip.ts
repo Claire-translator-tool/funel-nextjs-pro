@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import AdmZip from "adm-zip";
 import {
@@ -72,7 +73,7 @@ export async function importProductsFromZip(params: {
   zipPath: string;
   publishMode: "draft" | "published";
 }): Promise<ProductImportSummary> {
-  const extractDir = path.join(process.cwd(), "tmp", `funel-product-import-${Date.now()}`);
+  const extractDir = path.join(os.tmpdir(), `funel-product-import-${Date.now()}`);
   const summary: ProductImportSummary = {
     total: 0,
     created: 0,
