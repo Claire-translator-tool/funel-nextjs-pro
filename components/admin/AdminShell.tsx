@@ -9,55 +9,38 @@ type AdminShellProps = {
 };
 
 const navItems = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/inquiries", label: "Inquiries" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/products/import", label: "Bulk Import" },
-  { href: "/admin/media", label: "Media Library" },
-  { href: "/admin/cases", label: "Cases" },
-  { href: "/admin/pages", label: "Pages" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin", label: "Dashboard", helper: "仪表板" },
+  { href: "/admin/inquiries", label: "Inquiries", helper: "咨询/询问" },
+  { href: "/admin/products", label: "Products", helper: "产品" },
+  { href: "/admin/media", label: "Media Library", helper: "媒体库" },
+  { href: "/admin/pages", label: "Pages", helper: "页面数" },
+  { href: "/admin/settings", label: "Settings", helper: "设置" },
 ];
 
 export default function AdminShell({ admin, children }: AdminShellProps) {
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <Link href="/admin" className="text-xl font-bold text-green-950">
-              Funel Admin
-            </Link>
-            <p className="text-sm text-slate-500">{admin.email}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/"
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              View site
-            </Link>
-            <LogoutButton />
-          </div>
+    <div className="admin-shell">
+      <aside className="admin-sidebar">
+        <div className="admin-brand">
+          <Link href="/admin">Funel Admin</Link>
+          <small>{admin.email}</small>
         </div>
-      </header>
-
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[220px_1fr]">
-        <aside className="h-fit rounded-lg border border-slate-200 bg-white p-3">
-          <nav className="grid gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-green-50 hover:text-green-800"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-        <section>{children}</section>
-      </div>
+        <nav className="admin-nav" aria-label="Admin navigation">
+          {navItems.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <span>{item.label}</span>
+              <small>{item.helper}</small>
+            </Link>
+          ))}
+        </nav>
+        <div className="admin-sidebar-actions">
+          <Link href="/" className="btn ghost">
+            View site 查看网站
+          </Link>
+          <LogoutButton />
+        </div>
+      </aside>
+      <main className="admin-workspace">{children}</main>
     </div>
   );
 }
