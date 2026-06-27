@@ -12,8 +12,10 @@ const navItems = [
   { href: "/admin", label: "Dashboard", helper: "仪表板" },
   { href: "/admin/inquiries", label: "Inquiries", helper: "咨询/询问" },
   { href: "/admin/products", label: "Products", helper: "产品" },
+  { href: "/admin/products/import", label: "Bulk Import", helper: "批量导入" },
   { href: "/admin/media", label: "Media Library", helper: "媒体库" },
   { href: "/admin/pages", label: "Pages", helper: "页面数" },
+  { href: "/admin/ai-tools", label: "AI Tools", helper: "AI 工具" },
   { href: "/admin/settings", label: "Settings", helper: "设置" },
 ];
 
