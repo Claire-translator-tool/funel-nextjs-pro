@@ -1,4 +1,4 @@
-import { site, products as fallbackProducts } from "@/lib/site";
+import { products as fallbackProducts } from "@/lib/site";
 import { hasSupabaseAdminConfig, supabaseRest } from "@/lib/supabase";
 import type { CmsProduct } from "@/lib/types";
 
