@@ -86,9 +86,6 @@ function Header({ site }: { site: Awaited<ReturnType<typeof getSiteSettings>> })
                 <option value="zh-CN">中文</option>
               </select>
             </div>
-            <a className="btn ghost" href="/admin/login" style={{ display: 'none' }}>
-              Admin
-            </a>
             <a
               className="btn darkghost"
               href="https://sxfne1688.en.alibaba.com"
