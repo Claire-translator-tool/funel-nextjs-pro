@@ -81,7 +81,7 @@ export default function PagesManager({ pages }: PagesManagerProps) {
               <input
                 type="checkbox"
                 name="published"
-                defaultChecked={page.published}
+                defaultChecked={page.published !== false}
               />
               Published
             </label>
