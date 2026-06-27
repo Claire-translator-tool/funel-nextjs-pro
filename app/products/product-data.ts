@@ -48,7 +48,7 @@ export async function getProducts() {
   if (!url || !key) return fallbackProducts;
   const select = "slug,model,name,category,summary,specs,applications,benefits,image_url,seo_title,seo_description,seo_keywords,updated_at";
   try {
-    const res = await fetch(`${url}/rest/v1/products?select=${select}&published=eq.true&order=created_at.asc`, { headers: headers(), next: { revalidate: 300 } });
+    const res = await fetch(`${url}/rest/v1/products?select=${select}&published=eq.true&order=created_at.asc`, { headers: headers(), cache: "no-store" });
     if (!res.ok) return fallbackProducts;
     const data = normalizeProducts(await res.json());
     return data.length ? data : fallbackProducts;
@@ -61,7 +61,7 @@ export async function getProductBySlug(slug: string) {
   if (!url || !key) return fallbackProducts.find((product) => product.slug === slug) || null;
   const select = "slug,model,name,category,summary,specs,applications,benefits,image_url,seo_title,seo_description,seo_keywords,updated_at";
   try {
-    const res = await fetch(`${url}/rest/v1/products?select=${select}&slug=eq.${encodeURIComponent(slug)}&published=eq.true&limit=1`, { headers: headers(), next: { revalidate: 300 } });
+    const res = await fetch(`${url}/rest/v1/products?select=${select}&slug=eq.${encodeURIComponent(slug)}&published=eq.true&limit=1`, { headers: headers(), cache: "no-store" });
     if (!res.ok) return fallbackProducts.find((product) => product.slug === slug) || null;
     const data = normalizeProducts(await res.json());
     return data[0] || null;
