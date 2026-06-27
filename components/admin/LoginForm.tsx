@@ -18,6 +18,7 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit} className="grid gap-4">
       <input name="email" type="email" placeholder="Email" required className="input" />
       <input name="password" type="password" placeholder="Password" required className="input" />
+      {error ? <div className="notice error">{error}</div> : null}
       <button type="submit" disabled={loading} className="btn primary">{loading ? "Signing in..." : "Sign in"}</button>
     </form>
   );
