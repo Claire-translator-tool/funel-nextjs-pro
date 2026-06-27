@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./admin.css";
 import SiteChrome from "@/components/SiteChrome";
 import { getSiteSettings } from "./site-settings";
 import Script from "next/script";
