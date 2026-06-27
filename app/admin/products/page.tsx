@@ -15,23 +15,17 @@ export default async function AdminProductsPage() {
 
   return (
     <AdminShell admin={admin}>
-      <div className="grid gap-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-green-950">Products</h1>
-            <p className="mt-1 text-slate-600">
-              Edit product pages, buyer value, and product keyword SEO fields.
-            </p>
-          </div>
-          <Link
-            href="/admin/products/import"
-            className="rounded-lg bg-green-700 px-5 py-2 text-sm font-bold text-white hover:bg-green-800"
-          >
-            Bulk import products
-          </Link>
+      <div className="admin-page-head">
+        <div>
+          <span className="admin-kicker">Catalog</span>
+          <h1>Products 产品</h1>
+          <p>编辑产品页面、买家价值点和产品关键词 SEO 字段。</p>
         </div>
-        <ProductManager products={products} />
+        <Link href="/admin/products/import" className="btn primary">
+          Bulk import products 批量导入产品
+        </Link>
       </div>
+      <ProductManager products={products} />
     </AdminShell>
   );
 }
