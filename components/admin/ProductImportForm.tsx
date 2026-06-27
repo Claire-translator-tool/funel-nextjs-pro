@@ -13,8 +13,21 @@ export default function ProductImportForm() {
     data.append("file", file);
     data.append("publishMode", publishMode);
     const response = await fetch("/api/admin/import-products", { method: "POST", body: data });
+    const payload = await response.json().catch(() => null);
     setLoading(false);
-    setMessage(response.ok ? "Import completed. Products are ready to review. 导入完成，可以检查产品。" : "Import failed. Please check the ZIP package and try again. 导入失败，请检查 ZIP 文件。");
+
+    if (response.ok && payload?.ok) {
+      const summary = payload.summary;
+      setMessage(
+        `Import completed: ${summary.created} created, ${summary.updated} updated, ${summary.failed} failed. 导入完成：新增 ${summary.created} 个，更新 ${summary.updated} 个，失败 ${summary.failed} 个。`
+      );
+      return;
+    }
+
+    const detail = payload?.error || payload?.summary?.logs?.find((item: { message?: string }) => item.message)?.message;
+    setMessage(
+      `Import failed${detail ? `: ${detail}` : ""}. 导入失败${detail ? `：${detail}` : "，请检查 ZIP 文件或存储配置"}。`
+    );
   }
   return (
     <section className="admin-panel green-panel import-panel">
@@ -77,7 +90,7 @@ export default function ProductImportForm() {
         <button onClick={handleImport} disabled={loading || !file} className="btn primary">
           {loading ? "Importing... 正在导入" : "Import products 导入产品"}
         </button>
-        {message ? <span className={message.includes("failed") ? "upload-status error" : "upload-status"}>{message}</span> : null}
+        {message ? <span className={message.startsWith("Import failed") ? "upload-status error" : "upload-status"}>{message}</span> : null}
       </div>
     </section>
   );
