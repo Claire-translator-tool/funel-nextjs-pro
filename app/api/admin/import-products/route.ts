@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 import { jsonError, requireAdminForApi } from "@/lib/admin-api";
@@ -38,14 +39,18 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadDir = path.join(process.cwd(), "tmp", "funel-import-uploads");
+    const uploadDir = path.join(os.tmpdir(), "funel-import-uploads");
     await fs.mkdir(uploadDir, { recursive: true });
     const zipPath = path.join(uploadDir, `${Date.now()}-${safeFileName(file.name)}`);
     await fs.writeFile(zipPath, buffer);
 
     try {
       const summary = await importProductsFromZip({ zipPath, publishMode });
-      return NextResponse.json({ ok: true, summary });
+      return NextResponse.json({
+        ok: summary.failed === 0,
+        summary,
+        error: summary.failed ? `${summary.failed} product(s) failed during import.` : undefined,
+      });
     } finally {
       await fs.rm(zipPath, { force: true });
     }
