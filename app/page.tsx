@@ -2,6 +2,9 @@ import { blockText, getPageContent } from "./page-content";
 import { getProducts, productImage } from "./products/product-data";
 import { getSiteSettings, whatsappLink } from "./site-settings";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const defaultHero = "Industrial Water Monitoring & Process Automation Solutions";
 const defaultSummary =
   "FUNEL supplies online water quality analyzers, digital sensors, controllers, automation cabinets and integrated monitoring systems for municipal water, wastewater and industrial process water projects.";

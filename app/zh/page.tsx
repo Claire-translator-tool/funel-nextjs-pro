@@ -1,6 +1,9 @@
 import { getProducts, productImage } from "../products/product-data";
 import { getSiteSettings, whatsappLink } from "../site-settings";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "FUNEL 工业水质在线监测与过程自动化解决方案",
   description:
