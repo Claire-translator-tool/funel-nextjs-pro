@@ -17,7 +17,7 @@ export function isSupabasePlatformKey(key: string) {
 export function supabaseApiHeaders(key: string, extra: Record<string, string> = {}) {
   const headers: Record<string, string> = { apikey: key, ...extra };
 
-  if (key && !isSupabasePlatformKey(key)) {
+  if (key) {
     headers.Authorization = `Bearer ${key}`;
   }
 

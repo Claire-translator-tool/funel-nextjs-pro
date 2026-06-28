@@ -15,7 +15,7 @@ const key =
 
 function headers(extra: Record<string, string> = {}) {
   const h: Record<string, string> = { apikey: key, ...extra };
-  if (key && !key.startsWith("sb_secret_") && !key.startsWith("sb_publishable_")) {
+  if (key) {
     h.Authorization = `Bearer ${key}`;
   }
   return h;
