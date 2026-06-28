@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { supabaseApiHeaders } from "@/lib/supabase";
+import { supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const key = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const url = supabaseUrl;
+const key = supabaseServiceRoleKey;
 const allowedStatuses = new Set(["new", "in_progress", "won"]);
 
 function headers(extra: Record<string, string> = {}) {
