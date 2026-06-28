@@ -10,6 +10,13 @@ export default function ProductManager({ products }: ProductManagerProps) {
         <h2>Add new product 添加新产品</h2>
         <ProductForm action="/api/admin/products/create" />
       </section>
+      {products.length === 0 ? (
+        <div className="admin-empty">
+          No products loaded from Supabase yet. Add a product above, or check Supabase/Vercel environment settings if existing products should appear.
+          <br />
+          暂未从 Supabase 读取到产品。你可以先在上方新增产品；如果已有产品却没显示，请检查 Supabase/Vercel 环境变量。
+        </div>
+      ) : null}
       {products.map((p) => (
         <section key={p.id || p.slug} className="admin-panel product-editor-panel">
           <div className="admin-panel-head">

@@ -10,19 +10,25 @@ export const metadata = {
 
 export default async function AdminMediaPage() {
   const admin = await requireAdminPage();
-  const images = await listPublicImages().catch(() => []);
+  let images: Awaited<ReturnType<typeof listPublicImages>> = [];
+  let error = "";
+
+  try {
+    images = await listPublicImages();
+  } catch (caught) {
+    error = caught instanceof Error ? caught.message : "Unable to load media library.";
+  }
 
   return (
     <AdminShell admin={admin}>
-      <div className="grid gap-6">
+      <div className="admin-page-head">
         <div>
-          <h1 className="text-3xl font-bold text-green-950">Media Library</h1>
-          <p className="mt-1 text-slate-600">
-            Upload product images once and reuse the generated image URLs in product pages.
-          </p>
+          <span className="admin-kicker">Assets</span>
+          <h1>Media Library 图片库</h1>
+          <p>上传产品图片后，可复制生成的图片 URL 到产品页面中复用。</p>
         </div>
-        <MediaLibraryManager images={images} />
       </div>
+      <MediaLibraryManager images={images} initialError={error} />
     </AdminShell>
   );
 }

@@ -3,6 +3,8 @@ import { getPublishedPages, pagePath } from "./page-content";
 import { getProducts } from "./products/product-data";
 import { getSiteSettings } from "./site-settings";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [site, pages, products] = await Promise.all([
@@ -18,9 +20,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   paths.add("/zh");
   paths.add("/products");
   paths.add("/contact");
-  paths.add("/cases");
-  paths.add("/solutions");
-  paths.add("/about");
 
 
   // Dynamic pages

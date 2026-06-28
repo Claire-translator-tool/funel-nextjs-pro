@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 
-export default function MediaLibraryManager({ images }: any) {
+type MediaLibraryManagerProps = {
+  images: Array<{ url: string; name?: string }>;
+  initialError?: string;
+};
+
+export default function MediaLibraryManager({ images, initialError = "" }: MediaLibraryManagerProps) {
   const [uploading, setUploading] = useState(false);
   const [selected, setSelected] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(initialError ? `Upload/list error: ${initialError}` : "");
 
   async function uploadImage(event: any) {
     const file = event.target.files[0];
@@ -39,7 +44,7 @@ export default function MediaLibraryManager({ images }: any) {
           <span>{uploading ? "Uploading..." : selected || "Choose image"}</span>
           <small>PNG, JPG, WEBP and other browser image formats</small>
         </label>
-        {message ? <span className={message.startsWith("Upload failed") ? "upload-status error" : "upload-status"}>{message}</span> : null}
+        {message ? <span className={message.includes("failed") || message.includes("error") ? "upload-status error" : "upload-status"}>{message}</span> : null}
       </section>
       <div className="media-grid">
         {images.length === 0 ? (

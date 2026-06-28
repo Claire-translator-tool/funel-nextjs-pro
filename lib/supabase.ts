@@ -6,15 +6,51 @@ export function hasSupabaseAdminConfig() {
   return !!(supabaseUrl && supabaseServiceRoleKey);
 }
 
+export function cleanSupabaseUrl(value = supabaseUrl) {
+  return value.replace(/\/+$/, "");
+}
+
+export function isSupabasePlatformKey(key: string) {
+  return key.startsWith("sb_secret_") || key.startsWith("sb_publishable_");
+}
+
+export function supabaseApiHeaders(key: string, extra: Record<string, string> = {}) {
+  const headers: Record<string, string> = { apikey: key, ...extra };
+
+  if (key && !isSupabasePlatformKey(key)) {
+    headers.Authorization = `Bearer ${key}`;
+  }
+
+  return headers;
+}
+
+function prepareBody(body: unknown) {
+  if (!body || typeof body === "string" || body instanceof Blob || body instanceof FormData) {
+    return body as BodyInit | null | undefined;
+  }
+
+  return JSON.stringify(body);
+}
+
+function prepareHeaders(headers: Record<string, string>, body: unknown) {
+  if (body && typeof body !== "string" && !(body instanceof Blob) && !(body instanceof FormData)) {
+    return { "Content-Type": "application/json", ...headers };
+  }
+
+  return headers;
+}
+
 export async function supabaseRest<T = any>(path: string, options: any = {}): Promise<T> {
   const key = options.service !== false ? supabaseServiceRoleKey : supabaseAnonKey;
-  const res = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      ...(options.headers || {}),
-    },
+  const { prefer, headers: customHeaders, body, ...fetchOptions } = options;
+  const headers = supabaseApiHeaders(key, {
+    ...(prefer ? { Prefer: prefer } : {}),
+    ...(customHeaders || {}),
+  });
+  const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/${path}`, {
+    ...fetchOptions,
+    body: prepareBody(body),
+    headers: prepareHeaders(headers, body),
   });
   if (res.status === 204) return undefined as any;
   if (!res.ok) {

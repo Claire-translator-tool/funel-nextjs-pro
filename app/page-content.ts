@@ -1,3 +1,5 @@
+import { supabaseApiHeaders } from "@/lib/supabase";
+
 export type CmsPage = {
   slug: string;
   title: string;
@@ -11,9 +13,7 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const key = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 
 function headers() {
-  const h: Record<string, string> = { apikey: key };
-  if (key && !key.startsWith("sb_secret_") && !key.startsWith("sb_publishable_")) h.Authorization = `Bearer ${key}`;
-  return h;
+  return supabaseApiHeaders(key);
 }
 
 function normalize(data: CmsPage[]) {

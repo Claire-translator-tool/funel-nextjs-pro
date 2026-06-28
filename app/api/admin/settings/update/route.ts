@@ -1,13 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { supabaseApiHeaders } from "@/lib/supabase";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const key = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 
 function headers(extra: Record<string, string> = {}) {
-  const h: Record<string, string> = { apikey: key, ...extra };
-  if (key && !key.startsWith("sb_secret_") && !key.startsWith("sb_publishable_")) h.Authorization = `Bearer ${key}`;
-  return h;
+  return supabaseApiHeaders(key, extra);
 }
 
 function back(request: Request, suffix = "") {
@@ -46,5 +45,10 @@ export async function POST(request: Request) {
     body: JSON.stringify(payload),
   });
 
-  return res.ok ? back(request, "?saved=1") : back(request, "?error=save_failed");
+  if (!res.ok) {
+    console.error("Settings update failed", await res.text().catch(() => ""));
+    return back(request, "?error=save_failed");
+  }
+
+  return back(request, "?saved=1");
 }

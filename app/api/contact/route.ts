@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabaseApiHeaders } from "@/lib/supabase";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
@@ -8,9 +9,7 @@ function text(value: unknown) {
 }
 
 function headers() {
-  const h: Record<string, string> = { apikey: supabaseKey, "Content-Type": "application/json", Prefer: "return=representation" };
-  if (supabaseKey && !supabaseKey.startsWith("sb_secret_") && !supabaseKey.startsWith("sb_publishable_")) h.Authorization = `Bearer ${supabaseKey}`;
-  return h;
+  return supabaseApiHeaders(supabaseKey, { "Content-Type": "application/json", Prefer: "return=representation" });
 }
 
 async function notify(inquiry: Record<string, string>) {
@@ -34,7 +33,8 @@ export async function POST(req: NextRequest) {
     if (!res.ok) throw new Error(await res.text());
     await notify(inquiry);
     return isForm ? NextResponse.redirect(new URL("/contact?sent=1", req.url)) : NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
+    console.error("Contact inquiry submit failed", error);
     return isForm ? NextResponse.redirect(new URL("/contact?error=server", req.url)) : NextResponse.json({ error: "Submission failed" }, { status: 500 });
   }
 }

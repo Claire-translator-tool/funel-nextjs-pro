@@ -1,13 +1,5 @@
-import { supabaseServiceRoleKey, supabaseUrl } from "./supabase";
+import { cleanSupabaseUrl, supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "./supabase";
 const bucketName = "product-images";
-
-function cleanUrl(value: string) {
-  return value.replace(/\/+$/, "");
-}
-
-function isPlatformKey(key: string) {
-  return key.startsWith("sb_secret_") || key.startsWith("sb_publishable_");
-}
 
 async function storageError(response: Response, fallback: string) {
   const detail = await response.text().catch(() => "");
@@ -15,10 +7,7 @@ async function storageError(response: Response, fallback: string) {
 }
 
 function storageHeaders(contentType?: string) {
-  const headers: Record<string, string> = { apikey: supabaseServiceRoleKey };
-  if (supabaseServiceRoleKey && !isPlatformKey(supabaseServiceRoleKey)) {
-    headers.Authorization = `Bearer ${supabaseServiceRoleKey}`;
-  }
+  const headers = supabaseApiHeaders(supabaseServiceRoleKey);
   if (contentType) headers["Content-Type"] = contentType;
   return headers;
 }
@@ -28,7 +17,7 @@ async function ensurePublicBucket(bucket = bucketName) {
     throw new Error("Supabase Storage is not configured.");
   }
 
-  const baseUrl = cleanUrl(supabaseUrl);
+  const baseUrl = cleanSupabaseUrl(supabaseUrl);
   const check = await fetch(`${baseUrl}/storage/v1/bucket/${bucket}`, {
     headers: storageHeaders(),
     cache: "no-store",
@@ -58,7 +47,7 @@ async function ensurePublicBucket(bucket = bucketName) {
 
 export async function uploadPublicImage({ file, path }: { file: File; path: string }) {
   await ensurePublicBucket();
-  const baseUrl = cleanUrl(supabaseUrl);
+  const baseUrl = cleanSupabaseUrl(supabaseUrl);
   const res = await fetch(`${baseUrl}/storage/v1/object/${bucketName}/${path}`, {
     method: "POST",
     headers: {
@@ -73,7 +62,7 @@ export async function uploadPublicImage({ file, path }: { file: File; path: stri
 
 export async function uploadPublicImageBuffer({ buffer, path, contentType, bucket = bucketName }: any) {
   await ensurePublicBucket(bucket);
-  const baseUrl = cleanUrl(supabaseUrl);
+  const baseUrl = cleanSupabaseUrl(supabaseUrl);
   const res = await fetch(`${baseUrl}/storage/v1/object/${bucket}/${path}`, {
     method: "POST",
     headers: { ...storageHeaders(contentType), "x-upsert": "true" },
@@ -86,14 +75,16 @@ export async function uploadPublicImageBuffer({ buffer, path, contentType, bucke
 export async function listPublicImages() {
   if (!supabaseUrl || !supabaseServiceRoleKey) return [];
   await ensurePublicBucket();
-  const baseUrl = cleanUrl(supabaseUrl);
+  const baseUrl = cleanSupabaseUrl(supabaseUrl);
   const res = await fetch(`${baseUrl}/storage/v1/object/list/${bucketName}`, {
     method: "POST",
     headers: storageHeaders("application/json"),
     body: JSON.stringify({ prefix: "products", limit: 100 }),
     cache: "no-store",
   });
-  if (!res.ok) return [];
+  if (!res.ok) {
+    throw new Error(await storageError(res, "Storage image list failed"));
+  }
   const data = await res.json();
   return data.filter((f: any) => f.name && !f.name.endsWith("/")).map((f: any) => ({
     name: f.name,

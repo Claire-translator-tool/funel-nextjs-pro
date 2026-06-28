@@ -11,8 +11,11 @@ export async function getPublicProducts() {
 }
 
 export async function listAdminProducts() {
-  if (!hasSupabaseAdminConfig()) return fallbackProducts.map(p => ({ ...p, published: true }));
+  if (!hasSupabaseAdminConfig()) return [];
   try {
     return await supabaseRest<CmsProduct[]>("products?select=*&order=created_at.asc");
-  } catch { return fallbackProducts.map(p => ({ ...p, published: true })); }
+  } catch (error) {
+    console.error("Admin product list failed", error);
+    return [];
+  }
 }

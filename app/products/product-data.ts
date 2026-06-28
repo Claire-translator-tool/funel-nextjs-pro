@@ -1,3 +1,5 @@
+import { supabaseApiHeaders } from "@/lib/supabase";
+
 export type Product = {
   slug: string;
   model?: string | null;
@@ -29,9 +31,7 @@ const fallbackProducts: Product[] = [
 ];
 
 function headers() {
-  const h: Record<string, string> = { apikey: key };
-  if (key && !key.startsWith("sb_secret_") && !key.startsWith("sb_publishable_")) h.Authorization = `Bearer ${key}`;
-  return h;
+  return supabaseApiHeaders(key);
 }
 
 function normalizeProducts(data: Product[]) {

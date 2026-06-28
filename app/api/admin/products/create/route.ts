@@ -97,8 +97,15 @@ export async function POST(request: Request) {
       body: JSON.stringify(payload),
     });
 
-    return response.ok ? back(request, "?created=1") : back(request, "?error=create_failed");
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      console.error("Product create failed", detail);
+      return back(request, `?error=${encodeURIComponent(detail || "create_failed")}`);
+    }
+
+    return back(request, "?created=1");
   } catch (err) {
+    console.error("Product create/upload failed", err);
     const msg = err instanceof Error ? err.message : "upload_failed";
     return back(request, `?error=${encodeURIComponent(msg)}`);
   }

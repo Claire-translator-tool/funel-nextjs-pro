@@ -1,3 +1,5 @@
+import { supabaseApiHeaders } from "@/lib/supabase";
+
 export type SiteSettings = {
   site_name: string;
   site_domain: string;
@@ -25,9 +27,7 @@ const key = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_
 type SettingRow = { key: string; value: string | null };
 
 function headers() {
-  const h: Record<string, string> = { apikey: key };
-  if (key && !key.startsWith("sb_secret_") && !key.startsWith("sb_publishable_")) h.Authorization = `Bearer ${key}`;
-  return h;
+  return supabaseApiHeaders(key);
 }
 
 export function whatsappLink(value: string) {

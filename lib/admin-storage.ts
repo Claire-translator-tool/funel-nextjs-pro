@@ -1,28 +1,11 @@
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey =
-  process.env.SUPABASE_SECRET_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "";
+import { cleanSupabaseUrl, supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
+
+const supabaseKey = supabaseServiceRoleKey;
 
 export const mediaBucket = process.env.SUPABASE_STORAGE_BUCKET || "product-images";
 
-function cleanUrl(value: string) {
-  return value.replace(/\/+$/, "");
-}
-
-function isPlatformKey(key: string) {
-  return key.startsWith("sb_secret_") || key.startsWith("sb_publishable_");
-}
-
 export function supabaseHeaders(extra: Record<string, string> = {}) {
-  const headers: Record<string, string> = { apikey: supabaseKey, ...extra };
-
-  if (supabaseKey && !isPlatformKey(supabaseKey)) {
-    headers.Authorization = `Bearer ${supabaseKey}`;
-  }
-
-  return headers;
+  return supabaseApiHeaders(supabaseKey, extra);
 }
 
 export function lines(value: FormDataEntryValue | null) {
@@ -49,7 +32,7 @@ function fileExtension(file: File) {
 }
 
 export function publicImageUrl(path: string, bucket = mediaBucket) {
-  return `${cleanUrl(supabaseUrl)}/storage/v1/object/public/${bucket}/${path}`;
+  return `${cleanSupabaseUrl(supabaseUrl)}/storage/v1/object/public/${bucket}/${path}`;
 }
 
 async function ensurePublicBucket(bucket = mediaBucket) {
@@ -57,7 +40,7 @@ async function ensurePublicBucket(bucket = mediaBucket) {
     throw new Error("Supabase storage is not configured.");
   }
 
-  const baseUrl = cleanUrl(supabaseUrl);
+  const baseUrl = cleanSupabaseUrl(supabaseUrl);
   const check = await fetch(`${baseUrl}/storage/v1/bucket/${bucket}`, {
     headers: supabaseHeaders(),
     cache: "no-store",
@@ -98,7 +81,7 @@ export async function uploadImage(file: File, slug = "product") {
 
   const safeSlug = safeSegment(slug) || "product";
   const path = `products/${safeSlug}-${Date.now()}.${fileExtension(file)}`;
-  const response = await fetch(`${cleanUrl(supabaseUrl)}/storage/v1/object/${mediaBucket}/${path}`, {
+  const response = await fetch(`${cleanSupabaseUrl(supabaseUrl)}/storage/v1/object/${mediaBucket}/${path}`, {
     method: "POST",
     headers: supabaseHeaders({
       "Content-Type": file.type || "application/octet-stream",
@@ -124,7 +107,7 @@ export async function listProductImages() {
     return [];
   }
 
-  const response = await fetch(`${cleanUrl(supabaseUrl)}/storage/v1/object/list/${mediaBucket}`, {
+  const response = await fetch(`${cleanSupabaseUrl(supabaseUrl)}/storage/v1/object/list/${mediaBucket}`, {
     method: "POST",
     headers: supabaseHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({

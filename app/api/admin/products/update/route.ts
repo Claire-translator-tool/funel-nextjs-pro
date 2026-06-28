@@ -93,8 +93,15 @@ export async function POST(request: Request) {
       body: JSON.stringify(payload),
     });
 
-    return res.ok ? back(request, "?saved=1") : back(request, "?error=save_failed");
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error("Product update failed", detail);
+      return back(request, `?error=${encodeURIComponent(detail || "save_failed")}`);
+    }
+
+    return back(request, "?saved=1");
   } catch (err) {
+    console.error("Product update/upload failed", err);
     const msg = err instanceof Error ? err.message : "upload_failed";
     return back(request, `?error=${encodeURIComponent(msg)}`);
   }
