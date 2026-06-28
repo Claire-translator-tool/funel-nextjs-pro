@@ -33,7 +33,7 @@ function normalizeProducts(data: Product[]) {
 }
 
 export function productImage(product: Product) {
-  if (product.image_url?.startsWith("http")) return product.image_url;
+  if (product.image_url?.startsWith("http") || product.image_url?.startsWith("/")) return product.image_url;
   if (product.slug.includes("conductivity") || product.slug.includes("controller") || product.slug.includes("mp301")) return controllerImage;
   return analyzerImage;
 }
