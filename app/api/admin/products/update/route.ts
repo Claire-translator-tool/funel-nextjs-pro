@@ -1,25 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/admin-api";
+import { hasSupabaseAdminConfig, supabaseRest } from "@/lib/supabase";
 import { uploadPublicImage, uploadPublicImageBuffer } from "@/lib/supabase-storage";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const key =
-  process.env.SUPABASE_SECRET_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "";
-
-function headers(extra: Record<string, string> = {}) {
-  const h: Record<string, string> = { apikey: key, ...extra };
-  if (key) {
-    h.Authorization = `Bearer ${key}`;
-  }
-  return h;
-}
 
 function lines(value: FormDataEntryValue | null): string[] {
   return String(value || "")
@@ -61,7 +47,7 @@ export async function POST(request: Request) {
 
   const form = await request.formData();
   const id = String(form.get("id") || "");
-  if (!id || !url || !key) return back(request, "?error=missing_config");
+  if (!id || !hasSupabaseAdminConfig()) return back(request, "?error=missing_config");
 
   try {
     const imageFile = form.get("image_file");
@@ -87,17 +73,11 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     };
 
-    const res = await fetch(`${url}/rest/v1/products?id=eq.${encodeURIComponent(id)}`, {
+    await supabaseRest(`products?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH",
-      headers: headers({ "Content-Type": "application/json", Prefer: "return=minimal" }),
-      body: JSON.stringify(payload),
+      prefer: "return=minimal",
+      body: payload,
     });
-
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      console.error("Product update failed", detail);
-      return back(request, `?error=${encodeURIComponent(detail || "save_failed")}`);
-    }
 
     return back(request, "?saved=1");
   } catch (err) {
