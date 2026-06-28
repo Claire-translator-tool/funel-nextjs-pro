@@ -16,8 +16,42 @@ function passwordHash(password: string) {
   return createHash("sha256").update(password).digest("hex");
 }
 
-function setAdminCookie(req: NextRequest, token: string, maxAge = 3600) {
-  const res = NextResponse.redirect(new URL("/admin", req.url));
+function allowFallbackLogin() {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.FUNEL_ENABLE_LOCAL_FALLBACK_LOGIN === "true"
+  );
+}
+
+async function readCredentials(req: NextRequest) {
+  const contentType = req.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json")) {
+    const body = (await req.json().catch(() => ({}))) as {
+      email?: string;
+      password?: string;
+    };
+
+    return {
+      email: String(body.email || "").trim().toLowerCase(),
+      password: String(body.password || ""),
+      wantsJson: true,
+    };
+  }
+
+  const form = await req.formData();
+
+  return {
+    email: String(form.get("email") || "").trim().toLowerCase(),
+    password: String(form.get("password") || ""),
+    wantsJson: false,
+  };
+}
+
+function responseWithCookie(req: NextRequest, token: string, maxAge = 3600, wantsJson = false) {
+  const res = wantsJson
+    ? NextResponse.json({ ok: true })
+    : NextResponse.redirect(new URL("/admin", req.url));
   res.cookies.set(ADMIN_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
@@ -29,15 +63,14 @@ function setAdminCookie(req: NextRequest, token: string, maxAge = 3600) {
 }
 
 export async function POST(req: NextRequest) {
-  const form = await req.formData();
-  const email = String(form.get("email") || "").trim().toLowerCase();
-  const password = String(form.get("password") || "");
+  const { email, password, wantsJson } = await readCredentials(req);
 
   if (
+    allowFallbackLogin() &&
     email === ADMIN_EMAIL &&
     passwordHash(password) === FALLBACK_PASSWORD_HASH
   ) {
-    return setAdminCookie(req, `fallback-admin:${Date.now()}`, 60 * 60 * 8);
+    return responseWithCookie(req, `fallback-admin:${Date.now()}`, 60 * 60 * 8, wantsJson);
   }
 
   try {
@@ -53,8 +86,12 @@ export async function POST(req: NextRequest) {
     }
 
     const session = await auth.json();
-    return setAdminCookie(req, session.access_token, session.expires_in || 3600);
+    return responseWithCookie(req, session.access_token, session.expires_in || 3600, wantsJson);
   } catch {
+    if (wantsJson) {
+      return NextResponse.json({ error: "Login failed." }, { status: 401 });
+    }
+
     return NextResponse.redirect(new URL("/admin/login?error=1", req.url));
   }
 }

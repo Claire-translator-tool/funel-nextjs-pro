@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { supabaseUrl, supabaseServiceRoleKey } from "@/lib/supabase";
+import { requireAdminForApi } from "@/lib/admin-api";
+import { supabaseApiHeaders, supabaseUrl, supabaseServiceRoleKey } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const cookieStore = await cookies();
-  if (!cookieStore.get("funel_admin_token")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminForApi();
+  if (!auth.ok) return auth.response;
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     return NextResponse.json({
@@ -26,10 +24,7 @@ export async function GET() {
   const tables = ["products", "site_settings", "inquiries", "inquiry_notes", "pages", "case_studies"];
   for (const table of tables) {
     const r = await fetch(`${supabaseUrl}/rest/v1/${table}?limit=1`, {
-      headers: {
-        apikey: supabaseServiceRoleKey,
-        Authorization: `Bearer ${supabaseServiceRoleKey}`,
-      },
+      headers: supabaseApiHeaders(supabaseServiceRoleKey),
     });
     results[`table_${table}`] = r.ok ? "OK" : `MISSING (${r.status}: ${await r.text().then(t => t.slice(0, 100))})`;
   }

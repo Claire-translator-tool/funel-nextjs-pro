@@ -76,13 +76,15 @@ export async function getProducts() {
   }
 }
 
-export async function getProductBySlug(slug: string) {
+export async function getProductBySlug(slug: string, options: { includeDraft?: boolean } = {}) {
   if (!hasSupabaseAdminConfig()) return findFallbackProductBySlug(slug);
   const select = "slug,model,name,category,summary,specs,applications,benefits,image_url,seo_title,seo_description,seo_keywords,updated_at";
+  const publishedFilter = options.includeDraft ? "" : "&published=eq.true";
+
   try {
     const data = normalizeProducts(
       await supabaseRest<Product[]>(
-        `products?select=${select}&slug=eq.${encodeURIComponent(slug)}&published=eq.true&limit=1`,
+        `products?select=${select}&slug=eq.${encodeURIComponent(slug)}${publishedFilter}&limit=1`,
         { cache: "no-store" }
       )
     );

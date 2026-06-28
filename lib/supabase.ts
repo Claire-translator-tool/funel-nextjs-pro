@@ -17,7 +17,7 @@ export function isSupabasePlatformKey(key: string) {
 export function supabaseApiHeaders(key: string, extra: Record<string, string> = {}) {
   const headers: Record<string, string> = { apikey: key, ...extra };
 
-  if (key) {
+  if (key && !isSupabasePlatformKey(key)) {
     headers.Authorization = `Bearer ${key}`;
   }
 
@@ -57,7 +57,9 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
     const err = await res.text();
     throw new Error(`Supabase error: ${err}`);
   }
-  return res.json();
+  const text = await res.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text) as T;
 }
 
 export async function getSupabaseUser(token: string) {

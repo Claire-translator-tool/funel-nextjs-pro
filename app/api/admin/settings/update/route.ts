@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { requireAdminForApi } from "@/lib/admin-api";
 import { supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
 
 const url = supabaseUrl;
@@ -18,7 +18,9 @@ function cleanKey(value: string) {
 }
 
 export async function POST(request: Request) {
-  if (!(await cookies()).get("funel_admin_token")) {
+  const auth = await requireAdminForApi();
+
+  if (!auth.ok) {
     return NextResponse.redirect(new URL("/admin/login", request.url), { status: 303 });
   }
 

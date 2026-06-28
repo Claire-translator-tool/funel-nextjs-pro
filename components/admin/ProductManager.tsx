@@ -25,7 +25,7 @@ export default function ProductManager({ products }: ProductManagerProps) {
               <h2>{p.name}</h2>
               <p>{p.model || p.category || p.slug}</p>
             </div>
-            <Link href={`/products/${p.slug}`} className="btn ghost">
+            <Link href={`/products/${p.slug}?preview=1`} className="btn ghost">
               Preview 预览
             </Link>
           </div>

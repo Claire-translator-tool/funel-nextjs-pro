@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { requireAdminForApi } from "@/lib/admin-api";
 import { supabaseApiHeaders } from "@/lib/supabase";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -8,7 +8,9 @@ function headers() { return supabaseApiHeaders(key); }
 function csvCell(value: unknown) { return `"${String(value ?? "").replace(/"/g, '""')}"`; }
 
 export async function GET() {
-  if (!(await cookies()).get("funel_admin_token")) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireAdminForApi();
+  if (!auth.ok) return auth.response;
+
   const res = await fetch(`${url}/rest/v1/inquiries?select=*&order=created_at.desc&limit=1000`, { headers: headers(), cache: "no-store" });
   const rows = res.ok ? await res.json() : [];
   if (!res.ok) console.error("Inquiry export failed", await res.text().catch(() => ""));

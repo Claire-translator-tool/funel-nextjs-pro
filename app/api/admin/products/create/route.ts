@@ -77,6 +77,20 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     };
 
+    const existing = await supabaseRest<Array<{ id: string }>>(
+      `products?slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`
+    );
+
+    if (existing[0]?.id) {
+      await supabaseRest(`products?id=eq.${encodeURIComponent(existing[0].id)}`, {
+        method: "PATCH",
+        prefer: "return=minimal",
+        body: payload,
+      });
+
+      return back(request, "?saved=1");
+    }
+
     await supabaseRest("products", {
       method: "POST",
       prefer: "return=minimal",
