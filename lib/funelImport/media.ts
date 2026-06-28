@@ -148,20 +148,24 @@ export async function processAndUploadProductImages(params: {
       continue;
     }
 
-    const outputName = `${product.slug}-${index + 1}.webp`;
-    const storagePath = `products/${product.slug}/${outputName}`;
-    const webpBuffer = await toWebpBuffer(filePath);
-    const uploadFile = new File([webpBuffer as unknown as BlobPart], outputName, {
-      type: "image/webp",
-    });
-    const url = await uploadPublicImage({ file: uploadFile, path: storagePath });
+    try {
+      const outputName = `${product.slug}-${index + 1}.webp`;
+      const storagePath = `products/${product.slug}/${outputName}`;
+      const webpBuffer = await toWebpBuffer(filePath);
+      const uploadFile = new File([webpBuffer as unknown as BlobPart], outputName, {
+        type: "image/webp",
+      });
+      const url = await uploadPublicImage({ file: uploadFile, path: storagePath });
 
-    uploadedImages.push({
-      type: index === 0 ? "main" : type,
-      url,
-      path: storagePath,
-      alt: `${product.productName} ${product.model}`.trim(),
-    });
+      uploadedImages.push({
+        type: index === 0 ? "main" : type,
+        url,
+        path: storagePath,
+        alt: `${product.productName} ${product.model}`.trim(),
+      });
+    } catch (error) {
+      console.error(`Product image import failed for ${product.slug}`, error);
+    }
   }
 
   return {
