@@ -3,6 +3,8 @@ import AdminShell from "@/components/admin/AdminShell";
 import { requireAdminPage } from "@/lib/admin-page";
 import {
   cleanSupabaseUrl,
+  configuredSupabaseUrl,
+  expectedSupabaseRef,
   supabaseApiHeaders,
   supabaseAnonKey,
   supabaseServiceRoleKey,
@@ -31,7 +33,6 @@ type ProductProbe = {
 
 const storageBucket = process.env.SUPABASE_STORAGE_BUCKET || "product-images";
 const defaultProbeSlug = "online-dissolved-oxygen-analyzer-pfdo-800";
-const expectedSupabaseRef = process.env.FUNEL_EXPECTED_SUPABASE_REF || "givzkjmmxmrxcxtlwlys";
 
 function supabaseProjectRef(value: string) {
   if (!value) return "Missing";
@@ -51,11 +52,14 @@ function mask(value: string) {
 }
 
 function envRows() {
-  const projectRef = supabaseProjectRef(supabaseUrl);
+  const configuredProjectRef = supabaseProjectRef(configuredSupabaseUrl);
+  const activeProjectRef = supabaseProjectRef(supabaseUrl);
 
   return [
-    { key: "NEXT_PUBLIC_SUPABASE_URL", value: mask(supabaseUrl) },
-    { key: "Supabase project ref", value: projectRef },
+    { key: "Vercel NEXT_PUBLIC_SUPABASE_URL", value: mask(configuredSupabaseUrl) },
+    { key: "Vercel configured project ref", value: configuredProjectRef },
+    { key: "Active Supabase URL used by site", value: mask(supabaseUrl) },
+    { key: "Active Supabase project ref", value: activeProjectRef },
     { key: "Expected project ref", value: expectedSupabaseRef },
     { key: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", value: mask(supabaseAnonKey) },
     { key: "SUPABASE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY", value: mask(supabaseServiceRoleKey) },
@@ -151,7 +155,9 @@ type PageProps = {
 export default async function AdminSystemPage({ searchParams }: PageProps) {
   const admin = await requireAdminPage();
   const currentProjectRef = supabaseProjectRef(supabaseUrl);
-  const envTargetsExpectedProject = currentProjectRef === expectedSupabaseRef;
+  const configuredProjectRef = supabaseProjectRef(configuredSupabaseUrl);
+  const activeTargetsExpectedProject = currentProjectRef === expectedSupabaseRef;
+  const configuredTargetsExpectedProject = configuredProjectRef === expectedSupabaseRef;
   const params = (await searchParams) || {};
   const rawProbeSlug = params.slug;
   const probeSlug = Array.isArray(rawProbeSlug)
@@ -180,7 +186,7 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
       <div className="system-grid">
         <DiagnosticCard
           title="Vercel environment variables 环境变量"
-          ok={Boolean(supabaseUrl && supabaseServiceRoleKey && envTargetsExpectedProject)}
+          ok={Boolean(supabaseUrl && supabaseServiceRoleKey && activeTargetsExpectedProject)}
         >
           <div className="system-table">
             {envRows().map((row) => (
@@ -190,14 +196,16 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
               </div>
             ))}
           </div>
-          {!envTargetsExpectedProject ? (
+          {!configuredTargetsExpectedProject ? (
             <p className="system-error">
-              Vercel is connected to the wrong Supabase project. Set NEXT_PUBLIC_SUPABASE_URL,
+              Vercel still has a Supabase URL for another project. This site is using the
+              protected FUNEL fallback URL now, but you should still set NEXT_PUBLIC_SUPABASE_URL,
               NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY and SUPABASE_SECRET_KEY to the
               <code>{expectedSupabaseRef}</code> project, then redeploy.
               <br />
-              Vercel 当前连接的 Supabase 项目不对。请把三个 Supabase 环境变量改为
-              <code>{expectedSupabaseRef}</code> 项目的值，然后重新部署。
+              Vercel 里仍然填着其他 Supabase 项目的 URL。网站现在会自动使用 FUNEL
+              的正确项目 URL，但仍建议把三个 Supabase 环境变量改为
+              <code>{expectedSupabaseRef}</code> 项目的值后重新部署。
             </p>
           ) : null}
         </DiagnosticCard>
