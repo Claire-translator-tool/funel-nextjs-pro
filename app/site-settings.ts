@@ -1,4 +1,9 @@
-import { supabaseApiHeaders } from "@/lib/supabase";
+import {
+  cleanSupabaseUrl,
+  supabaseApiHeaders,
+  supabaseServiceRoleKey,
+  supabaseUrl,
+} from "@/lib/supabase";
 
 export type SiteSettings = {
   site_name: string;
@@ -21,8 +26,7 @@ export const defaultSiteSettings: SiteSettings = {
   contact_wechat: "Claire-chujiu",
 };
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const key = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const key = supabaseServiceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 
 type SettingRow = { key: string; value: string | null };
 
@@ -36,10 +40,10 @@ export function whatsappLink(value: string) {
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  if (!url || !key) return defaultSiteSettings;
+  if (!supabaseUrl || !key) return defaultSiteSettings;
 
   try {
-    const res = await fetch(`${url}/rest/v1/site_settings?select=key,value`, {
+    const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/site_settings?select=key,value`, {
       headers: headers(),
       next: { revalidate: 300 },
     });
