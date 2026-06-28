@@ -1,25 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/admin-api";
+import { hasSupabaseAdminConfig, supabaseRest } from "@/lib/supabase";
 import { uploadPublicImage, uploadPublicImageBuffer } from "@/lib/supabase-storage";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const key =
-  process.env.SUPABASE_SECRET_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  "";
-
-function headers(extra: Record<string, string> = {}) {
-  const h: Record<string, string> = { apikey: key, ...extra };
-  if (key) {
-    h.Authorization = `Bearer ${key}`;
-  }
-  return h;
-}
 
 function lines(value: FormDataEntryValue | null): string[] {
   return String(value || "")
@@ -64,7 +50,7 @@ export async function POST(request: Request) {
   const slug = String(form.get("slug") || "").trim();
   const name = String(form.get("name") || "").trim();
 
-  if (!url || !key) return back(request, "?error=missing_config");
+  if (!hasSupabaseAdminConfig()) return back(request, "?error=missing_config");
   if (!slug || !name) return back(request, "?error=missing_required");
 
   try {
@@ -91,17 +77,11 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     };
 
-    const response = await fetch(`${url}/rest/v1/products`, {
+    await supabaseRest("products", {
       method: "POST",
-      headers: headers({ "Content-Type": "application/json", Prefer: "return=minimal" }),
-      body: JSON.stringify(payload),
+      prefer: "return=minimal",
+      body: payload,
     });
-
-    if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      console.error("Product create failed", detail);
-      return back(request, `?error=${encodeURIComponent(detail || "create_failed")}`);
-    }
 
     return back(request, "?created=1");
   } catch (err) {
