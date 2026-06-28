@@ -35,6 +35,21 @@ export function publicImageUrl(path: string, bucket = mediaBucket) {
   return `${cleanSupabaseUrl(supabaseUrl)}/storage/v1/object/public/${bucket}/${path}`;
 }
 
+function formatStorageError(response: Response, fallback: string, detail = "") {
+  return `${fallback}: ${response.status}${detail ? ` - ${detail}` : ""}`;
+}
+
+function isMissingBucketResponse(response: Response, detail: string) {
+  const message = detail.toLowerCase();
+
+  return (
+    response.status === 404 ||
+    message.includes("bucket not found") ||
+    message.includes('"statuscode":"404"') ||
+    message.includes('"statuscode":404')
+  );
+}
+
 async function ensurePublicBucket(bucket = mediaBucket) {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error("Supabase storage is not configured.");
@@ -47,8 +62,9 @@ async function ensurePublicBucket(bucket = mediaBucket) {
   });
 
   if (check.ok) return;
-  if (check.status !== 404) {
-    throw new Error(`Storage bucket check failed: ${check.status}`);
+  const checkDetail = await check.text().catch(() => "");
+  if (!isMissingBucketResponse(check, checkDetail)) {
+    throw new Error(formatStorageError(check, "Storage bucket check failed", checkDetail));
   }
 
   const create = await fetch(`${baseUrl}/storage/v1/bucket`, {
@@ -64,7 +80,8 @@ async function ensurePublicBucket(bucket = mediaBucket) {
   });
 
   if (!create.ok && create.status !== 409) {
-    throw new Error(`Storage bucket create failed: ${create.status}`);
+    const createDetail = await create.text().catch(() => "");
+    throw new Error(formatStorageError(create, "Storage bucket create failed", createDetail));
   }
 }
 

@@ -3,7 +3,22 @@ const bucketName = "product-images";
 
 async function storageError(response: Response, fallback: string) {
   const detail = await response.text().catch(() => "");
+  return formatStorageError(response, fallback, detail);
+}
+
+function formatStorageError(response: Response, fallback: string, detail = "") {
   return `${fallback}: ${response.status}${detail ? ` - ${detail}` : ""}`;
+}
+
+function isMissingBucketResponse(response: Response, detail: string) {
+  const message = detail.toLowerCase();
+
+  return (
+    response.status === 404 ||
+    message.includes("bucket not found") ||
+    message.includes('"statuscode":"404"') ||
+    message.includes('"statuscode":404')
+  );
 }
 
 function storageHeaders(contentType?: string) {
@@ -24,8 +39,9 @@ async function ensurePublicBucket(bucket = bucketName) {
   });
 
   if (check.ok) return;
-  if (check.status !== 404) {
-    throw new Error(await storageError(check, "Storage bucket check failed"));
+  const checkDetail = await check.text().catch(() => "");
+  if (!isMissingBucketResponse(check, checkDetail)) {
+    throw new Error(formatStorageError(check, "Storage bucket check failed", checkDetail));
   }
 
   const create = await fetch(`${baseUrl}/storage/v1/bucket`, {

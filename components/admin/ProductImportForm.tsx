@@ -1,20 +1,36 @@
 "use client";
 import { useState } from "react";
+
+type ImportLog = {
+  slug?: string;
+  model?: string;
+  productName?: string;
+  status?: "created" | "updated" | "failed" | "skipped";
+  message?: string;
+  imageUrl?: string;
+};
+
 export default function ProductImportForm() {
   const [file, setFile] = useState<File|null>(null);
   const [publishMode, setPublishMode] = useState<"draft" | "published">("draft");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [logs, setLogs] = useState<ImportLog[]>([]);
+
   async function handleImport() {
     if (!file) return;
     setLoading(true);
     setMessage("");
+    setLogs([]);
     const data = new FormData();
     data.append("file", file);
     data.append("publishMode", publishMode);
     const response = await fetch("/api/admin/import-products", { method: "POST", body: data });
     const payload = await response.json().catch(() => null);
     setLoading(false);
+
+    const summaryLogs = Array.isArray(payload?.summary?.logs) ? payload.summary.logs : [];
+    setLogs(summaryLogs);
 
     if (response.ok && payload?.ok) {
       const summary = payload.summary;
@@ -24,7 +40,8 @@ export default function ProductImportForm() {
       return;
     }
 
-    const detail = payload?.error || payload?.summary?.logs?.find((item: { message?: string }) => item.message)?.message;
+    const failedLog = summaryLogs.find((item: ImportLog) => item.status === "failed" && item.message);
+    const detail = failedLog?.message || payload?.error || summaryLogs.find((item: ImportLog) => item.message)?.message;
     setMessage(
       `Import failed${detail ? `: ${detail}` : ""}. 导入失败${detail ? `：${detail}` : "，请检查 ZIP 文件或存储配置"}。`
     );
@@ -92,6 +109,20 @@ export default function ProductImportForm() {
         </button>
         {message ? <span className={message.startsWith("Import failed") ? "upload-status error" : "upload-status"}>{message}</span> : null}
       </div>
+      {logs.length ? (
+        <div className="import-log-list">
+          {logs.map((item, index) => (
+            <div key={`${item.slug || item.model || item.productName || "row"}-${index}`} className={`import-log-item ${item.status === "failed" ? "failed" : ""}`}>
+              <strong>{item.productName || item.model || item.slug || `Row ${index + 1}`}</strong>
+              <small>
+                {[item.status, item.slug, item.model].filter(Boolean).join(" · ")}
+              </small>
+              {item.message ? <p>{item.message}</p> : null}
+              {item.imageUrl ? <p className="import-log-url">{item.imageUrl}</p> : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

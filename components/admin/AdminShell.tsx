@@ -16,6 +16,7 @@ const navItems = [
   { href: "/admin/media", label: "Media Library", helper: "媒体库" },
   { href: "/admin/pages", label: "Pages", helper: "页面数" },
   { href: "/admin/ai-tools", label: "AI Tools", helper: "AI 工具" },
+  { href: "/admin/system", label: "System Check", helper: "系统检查" },
   { href: "/admin/settings", label: "Settings", helper: "设置" },
 ];
 

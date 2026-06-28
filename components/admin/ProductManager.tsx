@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CmsProduct } from "@/lib/types";
+import ProductImageUploader from "@/components/admin/ProductImageUploader";
 
 type ProductManagerProps = { products: CmsProduct[] };
 
@@ -65,16 +66,7 @@ function ProductForm({ product, action }: { product?: CmsProduct; action: string
         Summary 摘要/总结
         <textarea name="summary" className="input" defaultValue={product?.summary || ""} rows={4} />
       </label>
-      <div className="form-row">
-        <label>
-          Upload Image 上传图片
-          <input type="file" name="image_file" accept="image/*" />
-        </label>
-        <label>
-          Image URL 图片链接
-          <input name="image_url" className="input" defaultValue={product?.image_url || ""} />
-        </label>
-      </div>
+      <ProductImageUploader defaultUrl={product?.image_url || ""} slug={product?.slug || ""} />
       <div className="form-row three-cols">
         <label>
           Specs 规格
