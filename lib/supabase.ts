@@ -14,6 +14,32 @@ export function isSupabasePlatformKey(key: string) {
   return key.startsWith("sb_secret_") || key.startsWith("sb_publishable_");
 }
 
+function keyKind(key: string) {
+  if (!key) return "missing";
+  if (key.startsWith("sb_secret_")) return "sb_secret";
+  if (key.startsWith("sb_publishable_")) return "sb_publishable";
+  if (key.split(".").length === 3) return "jwt";
+  return "custom";
+}
+
+export function supabaseRuntimeContext(key: string) {
+  let urlRef = "missing-url";
+
+  try {
+    const host = new URL(cleanSupabaseUrl()).hostname;
+    urlRef = host.endsWith(".supabase.co") ? host.split(".")[0] : host;
+  } catch {
+    urlRef = supabaseUrl ? "invalid-url" : "missing-url";
+  }
+
+  return {
+    url_ref: urlRef,
+    key_type: keyKind(key),
+    has_publishable_key: Boolean(supabaseAnonKey),
+    has_secret_key: Boolean(supabaseServiceRoleKey),
+  };
+}
+
 export function supabaseApiHeaders(key: string, extra: Record<string, string> = {}) {
   const headers: Record<string, string> = { apikey: key, ...extra };
 
@@ -55,7 +81,7 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
   if (res.status === 204) return undefined as any;
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Supabase error: ${err}`);
+    throw new Error(`Supabase error (${res.status}, ${JSON.stringify(supabaseRuntimeContext(key))}): ${err}`);
   }
   const text = await res.text();
   if (!text) return undefined as T;
