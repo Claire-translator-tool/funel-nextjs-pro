@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
+import {
+  cleanSupabaseUrl,
+  supabaseApiHeaders,
+  supabaseServiceRoleKey,
+  supabaseUrl,
+} from "@/lib/supabase";
 
 const supabaseKey = supabaseServiceRoleKey;
 
@@ -28,7 +33,7 @@ export async function POST(req: NextRequest) {
   if (!inquiry.name || !inquiry.email || !inquiry.message) return isForm ? NextResponse.redirect(new URL("/contact?error=missing", req.url)) : NextResponse.json({ error: "Name, email and message are required" }, { status: 400 });
   try {
     if (!supabaseUrl || !supabaseKey) throw new Error("Supabase env missing");
-    const res = await fetch(`${supabaseUrl}/rest/v1/inquiries`, { method: "POST", headers: headers(), body: JSON.stringify(inquiry), cache: "no-store" });
+    const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/inquiries`, { method: "POST", headers: headers(), body: JSON.stringify(inquiry), cache: "no-store" });
     if (!res.ok) throw new Error(await res.text());
     await notify(inquiry);
     return isForm ? NextResponse.redirect(new URL("/contact?sent=1", req.url)) : NextResponse.json({ ok: true });
