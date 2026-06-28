@@ -21,6 +21,7 @@ function statusMessage(params: Record<string, string | string[] | undefined>) {
   if (params.error === "save_failed") return { type: "error", text: "Save failed. Please check Vercel runtime logs. 保存失败，请检查 Vercel 日志。" };
   if (params.error === "create_failed") return { type: "error", text: "Create failed. Please check slug uniqueness and Supabase permissions. 创建失败，请检查 slug 是否重复以及 Supabase 权限。" };
   if (params.error === "upload_failed") return { type: "error", text: "Image upload failed. 图片上传失败。" };
+  if (typeof params.error === "string") return { type: "error", text: `Operation failed: ${params.error}. 操作失败：${params.error}` };
   return null;
 }
 
