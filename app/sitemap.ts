@@ -20,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   paths.add("/zh");
   paths.add("/products");
   paths.add("/contact");
+  paths.add("/llms.txt");
 
 
   // Dynamic pages
