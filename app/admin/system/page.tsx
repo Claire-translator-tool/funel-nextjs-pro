@@ -31,6 +31,18 @@ type ProductProbe = {
 
 const storageBucket = process.env.SUPABASE_STORAGE_BUCKET || "product-images";
 const defaultProbeSlug = "online-dissolved-oxygen-analyzer-pfdo-800";
+const expectedSupabaseRef = process.env.FUNEL_EXPECTED_SUPABASE_REF || "givzkjmmxmrxcxtlwlys";
+
+function supabaseProjectRef(value: string) {
+  if (!value) return "Missing";
+
+  try {
+    const host = new URL(cleanSupabaseUrl(value)).hostname;
+    return host.endsWith(".supabase.co") ? host.split(".")[0] : host;
+  } catch {
+    return "Invalid URL";
+  }
+}
 
 function mask(value: string) {
   if (!value) return "Missing";
@@ -39,8 +51,12 @@ function mask(value: string) {
 }
 
 function envRows() {
+  const projectRef = supabaseProjectRef(supabaseUrl);
+
   return [
     { key: "NEXT_PUBLIC_SUPABASE_URL", value: mask(supabaseUrl) },
+    { key: "Supabase project ref", value: projectRef },
+    { key: "Expected project ref", value: expectedSupabaseRef },
     { key: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", value: mask(supabaseAnonKey) },
     { key: "SUPABASE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY", value: mask(supabaseServiceRoleKey) },
     { key: "SUPABASE_STORAGE_BUCKET", value: storageBucket },
@@ -134,6 +150,8 @@ type PageProps = {
 
 export default async function AdminSystemPage({ searchParams }: PageProps) {
   const admin = await requireAdminPage();
+  const currentProjectRef = supabaseProjectRef(supabaseUrl);
+  const envTargetsExpectedProject = currentProjectRef === expectedSupabaseRef;
   const params = (await searchParams) || {};
   const rawProbeSlug = params.slug;
   const probeSlug = Array.isArray(rawProbeSlug)
@@ -162,7 +180,7 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
       <div className="system-grid">
         <DiagnosticCard
           title="Vercel environment variables 环境变量"
-          ok={Boolean(supabaseUrl && supabaseServiceRoleKey)}
+          ok={Boolean(supabaseUrl && supabaseServiceRoleKey && envTargetsExpectedProject)}
         >
           <div className="system-table">
             {envRows().map((row) => (
@@ -172,6 +190,16 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
               </div>
             ))}
           </div>
+          {!envTargetsExpectedProject ? (
+            <p className="system-error">
+              Vercel is connected to the wrong Supabase project. Set NEXT_PUBLIC_SUPABASE_URL,
+              NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY and SUPABASE_SECRET_KEY to the
+              <code>{expectedSupabaseRef}</code> project, then redeploy.
+              <br />
+              Vercel 当前连接的 Supabase 项目不对。请把三个 Supabase 环境变量改为
+              <code>{expectedSupabaseRef}</code> 项目的值，然后重新部署。
+            </p>
+          ) : null}
         </DiagnosticCard>
 
         <DiagnosticCard title="Supabase products 产品数据" ok={published.ok && publishedProducts.length > 0}>
