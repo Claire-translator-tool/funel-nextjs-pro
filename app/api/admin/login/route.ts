@@ -1,14 +1,14 @@
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { cleanSupabaseUrl, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
 
 const ADMIN_COOKIE = "funel_admin_token";
 const ADMIN_EMAIL = "claire23803@gmail.com";
 const FALLBACK_PASSWORD_HASH =
   "a26eadadb988b99a4e7bdf9d42660cb232eec06aca51cfc1cb6a9ab8b5ce6815";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const key =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  supabaseAnonKey ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "";
 
@@ -74,7 +74,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const auth = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    if (!supabaseUrl || !key) {
+      throw new Error("Supabase auth is not configured.");
+    }
+
+    const auth = await fetch(`${cleanSupabaseUrl()}/auth/v1/token?grant_type=password`, {
       method: "POST",
       headers: { apikey: key, "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
