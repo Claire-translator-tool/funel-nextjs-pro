@@ -1,8 +1,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import {
+  cleanSupabaseUrl,
+  supabaseApiHeaders,
+  supabaseServiceRoleKey,
+  supabaseUrl,
+} from "@/lib/supabase";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const key = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const key = supabaseServiceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 
 type Inquiry = {
   id: string;
@@ -29,18 +34,18 @@ type InquiryNote = {
 };
 
 function headers() {
-  const h: Record<string, string> = { apikey: key };
-  if (key && !key.startsWith("sb_secret_") && !key.startsWith("sb_publishable_")) h.Authorization = `Bearer ${key}`;
-  return h;
+  return supabaseApiHeaders(key);
 }
 
 async function getInquiries(): Promise<Inquiry[]> {
-  const res = await fetch(`${url}/rest/v1/inquiries?select=*&order=created_at.desc&limit=200`, { headers: headers(), cache: "no-store" });
+  if (!supabaseUrl || !key) return [];
+  const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/inquiries?select=*&order=created_at.desc&limit=200`, { headers: headers(), cache: "no-store" });
   return res.ok ? res.json() : [];
 }
 
 async function getNotes(): Promise<InquiryNote[]> {
-  const res = await fetch(`${url}/rest/v1/inquiry_notes?select=*&order=created_at.desc&limit=500`, { headers: headers(), cache: "no-store" });
+  if (!supabaseUrl || !key) return [];
+  const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/inquiry_notes?select=*&order=created_at.desc&limit=500`, { headers: headers(), cache: "no-store" });
   return res.ok ? res.json() : [];
 }
 
