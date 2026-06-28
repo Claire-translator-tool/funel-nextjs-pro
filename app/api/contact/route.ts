@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseApiHeaders } from "@/lib/supabase";
+import { supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const supabaseKey = supabaseServiceRoleKey;
 
 function text(value: unknown) {
   return String(value || "").trim();
