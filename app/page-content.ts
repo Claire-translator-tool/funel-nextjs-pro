@@ -1,4 +1,9 @@
-import { supabaseApiHeaders } from "@/lib/supabase";
+import {
+  cleanSupabaseUrl,
+  supabaseApiHeaders,
+  supabaseServiceRoleKey,
+  supabaseUrl,
+} from "@/lib/supabase";
 
 export type CmsPage = {
   slug: string;
@@ -9,8 +14,7 @@ export type CmsPage = {
   published?: boolean | null;
 };
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const key = process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const key = supabaseServiceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 
 function headers() {
   return supabaseApiHeaders(key);
@@ -33,12 +37,12 @@ export function blockText(blocks: CmsPage["blocks"], keyName: string, fallback: 
 }
 
 export async function getPageContent(slug: string): Promise<CmsPage | null> {
-  if (!url || !key) return null;
+  if (!supabaseUrl || !key) return null;
   const select = "slug,title,blocks,seo_title,seo_description,published";
 
   try {
     const res = await fetch(
-      `${url}/rest/v1/pages?select=${select}&slug=eq.${encodeURIComponent(slug)}&published=eq.true&limit=1`,
+      `${cleanSupabaseUrl()}/rest/v1/pages?select=${select}&slug=eq.${encodeURIComponent(slug)}&published=eq.true&limit=1`,
       { headers: headers(), next: { revalidate: 300 } }
     );
     if (!res.ok) return null;
@@ -50,11 +54,11 @@ export async function getPageContent(slug: string): Promise<CmsPage | null> {
 }
 
 export async function getPublishedPages(): Promise<CmsPage[]> {
-  if (!url || !key) return [];
+  if (!supabaseUrl || !key) return [];
   const select = "slug,title,blocks,seo_title,seo_description,published";
 
   try {
-    const res = await fetch(`${url}/rest/v1/pages?select=${select}&published=eq.true&order=created_at.asc`, {
+    const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/pages?select=${select}&published=eq.true&order=created_at.asc`, {
       headers: headers(),
       next: { revalidate: 300 },
     });
