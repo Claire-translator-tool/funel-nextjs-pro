@@ -1,6 +1,31 @@
-export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+export const expectedSupabaseRef = process.env.FUNEL_EXPECTED_SUPABASE_REF || "givzkjmmxmrxcxtlwlys";
+export const expectedSupabaseUrl =
+  process.env.FUNEL_SUPABASE_URL || `https://${expectedSupabaseRef}.supabase.co`;
+export const configuredSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 export const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+function projectRefFromUrl(value: string): string {
+  try {
+    const host = new URL(cleanSupabaseUrl(value)).hostname;
+    return host.endsWith(".supabase.co") ? host.split(".")[0] : host;
+  } catch {
+    return value ? "invalid-url" : "";
+  }
+}
+
+function shouldUseExpectedSupabaseUrl() {
+  if (process.env.FUNEL_DISABLE_SUPABASE_URL_FALLBACK === "true") return false;
+  if (!expectedSupabaseRef) return false;
+  if (!configuredSupabaseUrl) return true;
+
+  const configuredRef = projectRefFromUrl(configuredSupabaseUrl);
+  return configuredRef && configuredRef !== expectedSupabaseRef;
+}
+
+export const supabaseUrl = shouldUseExpectedSupabaseUrl()
+  ? expectedSupabaseUrl
+  : configuredSupabaseUrl;
 
 export function hasSupabaseAdminConfig() {
   return !!(supabaseUrl && supabaseServiceRoleKey);
@@ -23,17 +48,11 @@ function keyKind(key: string) {
 }
 
 export function supabaseRuntimeContext(key: string) {
-  let urlRef = "missing-url";
-
-  try {
-    const host = new URL(cleanSupabaseUrl()).hostname;
-    urlRef = host.endsWith(".supabase.co") ? host.split(".")[0] : host;
-  } catch {
-    urlRef = supabaseUrl ? "invalid-url" : "missing-url";
-  }
-
   return {
-    url_ref: urlRef,
+    url_ref: projectRefFromUrl(supabaseUrl) || "missing-url",
+    configured_url_ref: projectRefFromUrl(configuredSupabaseUrl) || "missing-url",
+    expected_url_ref: expectedSupabaseRef,
+    using_url_fallback: supabaseUrl !== configuredSupabaseUrl,
     key_type: keyKind(key),
     has_publishable_key: Boolean(supabaseAnonKey),
     has_secret_key: Boolean(supabaseServiceRoleKey),
@@ -89,7 +108,7 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
 }
 
 export async function getSupabaseUser(token: string) {
-  const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+  const res = await fetch(`${cleanSupabaseUrl()}/auth/v1/user`, {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${token}`,
