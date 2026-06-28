@@ -15,6 +15,8 @@ function isMissingBucketResponse(response: Response, detail: string) {
 
   return (
     response.status === 404 ||
+    (response.status === 400 && message.includes("not found")) ||
+    (message.includes("bucket") && message.includes("not found")) ||
     message.includes("bucket not found") ||
     message.includes('"statuscode":"404"') ||
     message.includes('"statuscode":404')
@@ -57,7 +59,11 @@ async function ensurePublicBucket(bucket = bucketName) {
   });
 
   if (!create.ok && create.status !== 409) {
-    throw new Error(await storageError(create, "Storage bucket create failed"));
+    const createDetail = await create.text().catch(() => "");
+    const lowered = createDetail.toLowerCase();
+    if (!lowered.includes("already exists") && !lowered.includes("duplicate")) {
+      throw new Error(formatStorageError(create, "Storage bucket create failed", createDetail));
+    }
   }
 }
 
