@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { cleanSupabaseUrl, supabaseAnonKey, supabaseUrl } from "@/lib/supabase";
+import { cleanSupabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
 
 const ADMIN_COOKIE = "funel_admin_token";
 const ADMIN_EMAIL = "claire23803@gmail.com";
@@ -8,6 +8,7 @@ const FALLBACK_PASSWORD_HASH =
   "a26eadadb988b99a4e7bdf9d42660cb232eec06aca51cfc1cb6a9ab8b5ce6815";
 
 const key =
+  supabaseServiceRoleKey ||
   supabaseAnonKey ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "";
