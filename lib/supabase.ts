@@ -108,9 +108,10 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
 }
 
 export async function getSupabaseUser(token: string) {
+  const key = supabaseServiceRoleKey || supabaseAnonKey;
   const res = await fetch(`${cleanSupabaseUrl()}/auth/v1/user`, {
     headers: {
-      apikey: supabaseAnonKey,
+      apikey: key,
       Authorization: `Bearer ${token}`,
     },
   });
