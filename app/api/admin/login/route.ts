@@ -7,11 +7,17 @@ const ADMIN_EMAIL = "claire23803@gmail.com";
 const FALLBACK_PASSWORD_HASH =
   "a26eadadb988b99a4e7bdf9d42660cb232eec06aca51cfc1cb6a9ab8b5ce6815";
 
-const key =
-  supabaseServiceRoleKey ||
-  supabaseAnonKey ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "";
+function getAuthKeys() {
+  return Array.from(
+    new Set(
+      [
+        supabaseAnonKey,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        supabaseServiceRoleKey,
+      ].filter(Boolean)
+    )
+  );
+}
 
 function passwordHash(password: string) {
   return createHash("sha256").update(password).digest("hex");
@@ -75,22 +81,39 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    if (!supabaseUrl || !key) {
+    if (!supabaseUrl) {
       throw new Error("Supabase auth is not configured.");
     }
 
-    const auth = await fetch(`${cleanSupabaseUrl()}/auth/v1/token?grant_type=password`, {
-      method: "POST",
-      headers: { apikey: key, "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      cache: "no-store",
-    });
+    const authKeys = getAuthKeys();
 
-    if (!auth.ok) {
-      throw new Error(await auth.text());
+    if (!authKeys.length) {
+      throw new Error("Supabase auth key is not configured.");
     }
 
-    const session = await auth.json();
+    let session: any = null;
+    let lastError = "";
+
+    for (const authKey of authKeys) {
+      const auth = await fetch(`${cleanSupabaseUrl()}/auth/v1/token?grant_type=password`, {
+        method: "POST",
+        headers: { apikey: authKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        cache: "no-store",
+      });
+
+      if (auth.ok) {
+        session = await auth.json();
+        break;
+      }
+
+      lastError = await auth.text().catch(() => "");
+    }
+
+    if (!session?.access_token) {
+      throw new Error(lastError || "Supabase login failed.");
+    }
+
     return responseWithCookie(req, session.access_token, session.expires_in || 3600, wantsJson);
   } catch {
     if (wantsJson) {
