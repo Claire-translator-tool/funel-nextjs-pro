@@ -1,23 +1,11 @@
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { cleanSupabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
+import { cleanSupabaseUrl, getSupabaseAuthKeys, supabaseUrl } from "@/lib/supabase";
 
 const ADMIN_COOKIE = "funel_admin_token";
 const ADMIN_EMAIL = "claire23803@gmail.com";
 const FALLBACK_PASSWORD_HASH =
   "a26eadadb988b99a4e7bdf9d42660cb232eec06aca51cfc1cb6a9ab8b5ce6815";
-
-function getAuthKeys() {
-  return Array.from(
-    new Set(
-      [
-        supabaseAnonKey,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-        supabaseServiceRoleKey,
-      ].filter(Boolean)
-    )
-  );
-}
 
 function passwordHash(password: string) {
   return createHash("sha256").update(password).digest("hex");
@@ -85,7 +73,7 @@ export async function POST(req: NextRequest) {
       throw new Error("Supabase auth is not configured.");
     }
 
-    const authKeys = getAuthKeys();
+    const authKeys = getSupabaseAuthKeys();
 
     if (!authKeys.length) {
       throw new Error("Supabase auth key is not configured.");
