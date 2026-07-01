@@ -18,13 +18,20 @@ function isMissingBucketResponse(response: Response, detail: string) {
     (response.status === 400 && message.includes("not found")) ||
     (message.includes("bucket") && message.includes("not found")) ||
     message.includes("bucket not found") ||
-    message.includes('"statuscode":"404"') ||
-    message.includes('"statuscode":404')
+    message.includes('\"statuscode\":\"404\"') ||
+    message.includes('\"statuscode\":404')
   );
 }
 
 function storageHeaders(contentType?: string) {
-  const headers = supabaseApiHeaders(supabaseServiceRoleKey);
+  if (!supabaseServiceRoleKey) {
+    throw new Error("SUPABASE_SECRET_KEY is not configured.");
+  }
+
+  const headers = supabaseApiHeaders(supabaseServiceRoleKey, {
+    Authorization: `Bearer ${supabaseServiceRoleKey}`,
+  });
+
   if (contentType) headers["Content-Type"] = contentType;
   return headers;
 }
