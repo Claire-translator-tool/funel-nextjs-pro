@@ -23,6 +23,20 @@ export function getSupabaseAuthKeys() {
   );
 }
 
+function getSupabaseRestKeys(useService: boolean) {
+  return Array.from(
+    new Set(
+      [
+        useService ? supabaseServiceRoleKey : "",
+        supabaseAnonKey,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        fallbackSupabasePublishableKey,
+      ].filter(Boolean)
+    )
+  );
+}
+
 function projectRefFromUrl(value: string): string {
   try {
     const host = new URL(cleanSupabaseUrl(value)).hostname;
@@ -104,26 +118,64 @@ function prepareHeaders(headers: Record<string, string>, body: unknown) {
   return headers;
 }
 
+function isLikelyAuthKeyFailure(status: number, bodyText: string) {
+  if (![400, 401, 403].includes(status)) return false;
+
+  const text = bodyText.toLowerCase();
+  return (
+    text.includes("invalid compact jws") ||
+    text.includes("invalid api key") ||
+    text.includes("unauthorized") ||
+    text.includes("jwt") ||
+    text.includes("authorization") ||
+    text.includes("api key")
+  );
+}
+
 export async function supabaseRest<T = any>(path: string, options: any = {}): Promise<T> {
-  const key = options.service !== false ? supabaseServiceRoleKey : supabaseAnonKey;
+  const useService = options.service !== false;
+  const keys = getSupabaseRestKeys(useService);
   const { prefer, headers: customHeaders, body, ...fetchOptions } = options;
-  const headers = supabaseApiHeaders(key, {
-    ...(prefer ? { Prefer: prefer } : {}),
-    ...(customHeaders || {}),
-  });
-  const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/${path}`, {
-    ...fetchOptions,
-    body: prepareBody(body),
-    headers: prepareHeaders(headers, body),
-  });
-  if (res.status === 204) return undefined as any;
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Supabase error (${res.status}, ${JSON.stringify(supabaseRuntimeContext(key))}): ${err}`);
+  const preparedBody = prepareBody(body);
+  let lastFailure: { status: number; key: string; text: string } | null = null;
+
+  for (const key of keys) {
+    const headers = supabaseApiHeaders(key, {
+      ...(prefer ? { Prefer: prefer } : {}),
+      ...(customHeaders || {}),
+    });
+    const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/${path}`, {
+      ...fetchOptions,
+      body: preparedBody,
+      headers: prepareHeaders(headers, body),
+    });
+
+    if (res.status === 204) return undefined as any;
+
+    const text = await res.text();
+    if (res.ok) {
+      if (!text) return undefined as T;
+      return JSON.parse(text) as T;
+    }
+
+    lastFailure = { status: res.status, key, text };
+
+    if (isLikelyAuthKeyFailure(res.status, text)) {
+      continue;
+    }
+
+    throw new Error(`Supabase error (${res.status}, ${JSON.stringify(supabaseRuntimeContext(key))}): ${text}`);
   }
-  const text = await res.text();
-  if (!text) return undefined as T;
-  return JSON.parse(text) as T;
+
+  if (lastFailure) {
+    throw new Error(
+      `Supabase error (${lastFailure.status}, ${JSON.stringify(
+        supabaseRuntimeContext(lastFailure.key)
+      )}): ${lastFailure.text}`
+    );
+  }
+
+  throw new Error("Supabase error: no API key configured.");
 }
 
 export async function getSupabaseUser(token: string) {
