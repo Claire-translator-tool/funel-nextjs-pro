@@ -1,124 +1,342 @@
-import { cleanSupabaseUrl, supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "./supabase";
-const bucketName = "product-images";
+import {
+  cleanSupabaseUrl,
+  isSupabasePlatformKey,
+  supabaseServiceRoleKey,
+  supabaseUrl,
+} from "./supabase";
 
-async function storageError(response: Response, fallback: string) {
-  const detail = await response.text().catch(() => "");
-  return formatStorageError(response, fallback, detail);
+const defaultBucket = "product-images";
+
+type MediaObject = {
+  name: string;
+  id?: string;
+  updated_at?: string;
+  created_at?: string;
+  last_accessed_at?: string;
+  metadata?: {
+    size?: number;
+    mimetype?: string;
+    [key: string]: unknown;
+  };
+};
+
+export type PublicImageItem = {
+  name: string;
+  path: string;
+  url: string;
+  size?: number;
+  updated_at?: string;
+};
+
+type StorageResult = {
+  response: Response;
+  detail: string;
+};
+
+export function getMediaBucket() {
+  return process.env.SUPABASE_STORAGE_BUCKET || defaultBucket;
 }
 
-function formatStorageError(response: Response, fallback: string, detail = "") {
-  return `${fallback}: ${response.status}${detail ? ` - ${detail}` : ""}`;
+export function getPublicStorageUrl(bucket: string, path: string) {
+  return `${cleanSupabaseUrl(supabaseUrl)}/storage/v1/object/public/${bucket}/${path}`;
 }
 
-function isMissingBucketResponse(response: Response, detail: string) {
-  const message = detail.toLowerCase();
+function storageAuthHelp(lastDetail = "") {
+  const suffix = lastDetail ? ` Last response: ${lastDetail}` : "";
+
+  return [
+    "Supabase Storage authorization failed.",
+    "Please update Vercel Environment Variables: SUPABASE_SECRET_KEY must be the Secret key from the givzkjmmxmrxcxtlwlys Supabase project, and SUPABASE_STORAGE_BUCKET should be product-images. Then redeploy.",
+    "Supabase 图片库授权失败。请在 Vercel 环境变量中更新：SUPABASE_SECRET_KEY 必须填写 givzkjmmxmrxcxtlwlys 这个 Supabase 项目的 Secret key，SUPABASE_STORAGE_BUCKET 填 product-images，然后重新部署。",
+    suffix,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export function isSupabaseStorageAuthorizationError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  return message.includes("Supabase Storage authorization failed") || message.includes("SUPABASE_SECRET_KEY must be");
+}
+
+function storageHeaderModes(contentType?: string) {
+  if (!supabaseServiceRoleKey) {
+    throw new Error(storageAuthHelp("SUPABASE_SECRET_KEY is missing."));
+  }
+
+  const base: Record<string, string> = {
+    apikey: supabaseServiceRoleKey,
+  };
+
+  if (contentType) {
+    base["Content-Type"] = contentType;
+  }
+
+  if (!isSupabasePlatformKey(supabaseServiceRoleKey)) {
+    return [{ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` }];
+  }
+
+  return [base, { ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` }];
+}
+
+async function readErrorDetail(response: Response) {
+  const text = await response.text().catch(() => "");
+
+  if (!text) {
+    return "";
+  }
+
+  try {
+    const json = JSON.parse(text) as {
+      error?: string;
+      message?: string;
+      statusCode?: string | number;
+      hint?: string;
+    };
+
+    return [json.error, json.message, json.hint, json.statusCode]
+      .filter(Boolean)
+      .join(" ");
+  } catch {
+    return text;
+  }
+}
+
+function isAuthFailure(status: number, detail: string) {
+  const lower = detail.toLowerCase();
 
   return (
-    response.status === 404 ||
-    (response.status === 400 && message.includes("not found")) ||
-    (message.includes("bucket") && message.includes("not found")) ||
-    message.includes("bucket not found") ||
-    message.includes('\"statuscode\":\"404\"') ||
-    message.includes('\"statuscode\":404')
+    status === 401 ||
+    status === 403 ||
+    lower.includes("authorization") ||
+    lower.includes("unauthorized") ||
+    lower.includes("invalid api key") ||
+    lower.includes("invalid compact jws") ||
+    lower.includes("jwt") ||
+    lower.includes("api key")
   );
 }
 
-function storageHeaders(contentType?: string) {
-  if (!supabaseServiceRoleKey) {
-    throw new Error("SUPABASE_SECRET_KEY is not configured.");
+function formatStorageError(fallback: string, status: number, detail = "") {
+  if (isAuthFailure(status, detail)) {
+    return storageAuthHelp(`${status}${detail ? ` ${detail}` : ""}`);
   }
 
-  const headers = supabaseApiHeaders(supabaseServiceRoleKey, {
-    Authorization: `Bearer ${supabaseServiceRoleKey}`,
-  });
-
-  if (contentType) headers["Content-Type"] = contentType;
-  return headers;
+  return `${fallback}: ${status}${detail ? ` ${detail}` : ""}`;
 }
 
-async function ensurePublicBucket(bucket = bucketName) {
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    throw new Error("Supabase Storage is not configured.");
-  }
+async function storageFetch(url: string, init: RequestInit, fallback: string, contentType?: string): Promise<StorageResult> {
+  const authErrors: string[] = [];
 
-  const baseUrl = cleanSupabaseUrl(supabaseUrl);
-  const check = await fetch(`${baseUrl}/storage/v1/bucket/${bucket}`, {
-    headers: storageHeaders(),
-    cache: "no-store",
-  });
+  for (const headers of storageHeaderModes(contentType)) {
+    const response = await fetch(url, {
+      ...init,
+      headers: {
+        ...headers,
+        ...((init.headers as Record<string, string> | undefined) || {}),
+      },
+    });
 
-  if (check.ok) return;
-  const checkDetail = await check.text().catch(() => "");
-  if (!isMissingBucketResponse(check, checkDetail)) {
-    throw new Error(formatStorageError(check, "Storage bucket check failed", checkDetail));
-  }
-
-  const create = await fetch(`${baseUrl}/storage/v1/bucket`, {
-    method: "POST",
-    headers: storageHeaders("application/json"),
-    body: JSON.stringify({
-      id: bucket,
-      name: bucket,
-      public: true,
-      file_size_limit: 20 * 1024 * 1024,
-      allowed_mime_types: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-    }),
-  });
-
-  if (!create.ok && create.status !== 409) {
-    const createDetail = await create.text().catch(() => "");
-    const lowered = createDetail.toLowerCase();
-    if (!lowered.includes("already exists") && !lowered.includes("duplicate")) {
-      throw new Error(formatStorageError(create, "Storage bucket create failed", createDetail));
+    if (response.ok) {
+      return { response, detail: "" };
     }
+
+    const detail = await readErrorDetail(response);
+
+    if (isAuthFailure(response.status, detail)) {
+      authErrors.push(`${response.status}${detail ? ` ${detail}` : ""}`);
+      continue;
+    }
+
+    return { response, detail };
+  }
+
+  throw new Error(storageAuthHelp(authErrors[authErrors.length - 1] || fallback));
+}
+
+function isBucketMissing(status: number, detail: string) {
+  const lower = detail.toLowerCase();
+
+  return (
+    status === 404 ||
+    lower.includes("bucket not found") ||
+    (lower.includes("bucket") && lower.includes("not found")) ||
+    lower.includes('"statuscode":"404"') ||
+    lower.includes('"statuscode":404')
+  );
+}
+
+function isBucketAlreadyExists(status: number, detail: string) {
+  const lower = detail.toLowerCase();
+
+  return (
+    status === 409 ||
+    lower.includes("already exists") ||
+    lower.includes("duplicate")
+  );
+}
+
+export async function ensurePublicBucket(bucket = getMediaBucket()) {
+  if (!supabaseUrl) {
+    throw new Error("Supabase URL is not configured.");
+  }
+
+  const baseUrl = cleanSupabaseUrl(supabaseUrl);
+  const check = await storageFetch(
+    `${baseUrl}/storage/v1/bucket/${bucket}`,
+    { cache: "no-store" },
+    "Storage bucket check failed"
+  );
+
+  if (check.response.ok) {
+    return;
+  }
+
+  if (!isBucketMissing(check.response.status, check.detail)) {
+    throw new Error(formatStorageError("Storage bucket check failed", check.response.status, check.detail));
+  }
+
+  const create = await storageFetch(
+    `${baseUrl}/storage/v1/bucket`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        id: bucket,
+        name: bucket,
+        public: true,
+        file_size_limit: 20 * 1024 * 1024,
+        allowed_mime_types: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+      }),
+    },
+    "Storage bucket create failed",
+    "application/json"
+  );
+
+  if (!create.response.ok && !isBucketAlreadyExists(create.response.status, create.detail)) {
+    throw new Error(formatStorageError("Storage bucket create failed", create.response.status, create.detail));
   }
 }
 
-export async function uploadPublicImage({ file, path }: { file: File; path: string }) {
-  await ensurePublicBucket();
+export async function uploadPublicImageBuffer({
+  buffer,
+  path,
+  contentType,
+  bucket = getMediaBucket(),
+}: {
+  buffer: Buffer;
+  path: string;
+  contentType: string;
+  bucket?: string;
+}) {
+  await ensurePublicBucket(bucket);
+
   const baseUrl = cleanSupabaseUrl(supabaseUrl);
-  const res = await fetch(`${baseUrl}/storage/v1/object/${bucketName}/${path}`, {
-    method: "POST",
-    headers: {
-      ...storageHeaders(file.type),
-      "x-upsert": "true",
+  const upload = await storageFetch(
+    `${baseUrl}/storage/v1/object/${bucket}/${path}`,
+    {
+      method: "POST",
+      headers: { "x-upsert": "true" },
+      body: buffer,
     },
-    body: file,
-  });
-  if (!res.ok) throw new Error(await storageError(res, "Product image upload failed"));
-  return `${baseUrl}/storage/v1/object/public/${bucketName}/${path}`;
+    "Image upload failed",
+    contentType || "application/octet-stream"
+  );
+
+  if (!upload.response.ok) {
+    throw new Error(formatStorageError("Image upload failed", upload.response.status, upload.detail));
+  }
+
+  return getPublicStorageUrl(bucket, path);
 }
 
-export async function uploadPublicImageBuffer({ buffer, path, contentType, bucket = bucketName }: any) {
-  await ensurePublicBucket(bucket);
-  const baseUrl = cleanSupabaseUrl(supabaseUrl);
-  const res = await fetch(`${baseUrl}/storage/v1/object/${bucket}/${path}`, {
-    method: "POST",
-    headers: { ...storageHeaders(contentType), "x-upsert": "true" },
-    body: buffer,
+export async function uploadPublicImage({
+  file,
+  path,
+  bucket = getMediaBucket(),
+}: {
+  file: File;
+  path: string;
+  bucket?: string;
+}) {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return uploadPublicImageBuffer({
+    buffer,
+    path,
+    bucket,
+    contentType: file.type || "application/octet-stream",
   });
-  if (!res.ok) throw new Error(await storageError(res, "Media upload failed"));
-  return `${baseUrl}/storage/v1/object/public/${bucket}/${path}`;
+}
+
+async function listStorageObjects(prefix: string, bucket = getMediaBucket()): Promise<PublicImageItem[]> {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    return [];
+  }
+
+  await ensurePublicBucket(bucket);
+
+  const baseUrl = cleanSupabaseUrl(supabaseUrl);
+  const list = await storageFetch(
+    `${baseUrl}/storage/v1/object/list/${bucket}`,
+    {
+      method: "POST",
+      cache: "no-store",
+      body: JSON.stringify({
+        prefix,
+        limit: 100,
+        offset: 0,
+        sortBy: { column: "updated_at", order: "desc" },
+      }),
+    },
+    "Storage image list failed",
+    "application/json"
+  );
+
+  if (!list.response.ok) {
+    console.error("Storage list failed", {
+      bucket,
+      prefix,
+      status: list.response.status,
+      detail: list.detail,
+    });
+    return [];
+  }
+
+  const objects = (await list.response.json()) as MediaObject[];
+
+  return objects
+    .filter((item) => item.name && !item.name.endsWith("/"))
+    .map((item) => {
+      const objectPath = prefix ? `${prefix}/${item.name}` : item.name;
+      return {
+        name: item.name,
+        path: objectPath,
+        url: getPublicStorageUrl(bucket, objectPath),
+        size: item.metadata?.size,
+        updated_at: item.updated_at || item.created_at,
+      };
+    });
 }
 
 export async function listPublicImages() {
-  if (!supabaseUrl || !supabaseServiceRoleKey) return [];
-  await ensurePublicBucket();
-  const baseUrl = cleanSupabaseUrl(supabaseUrl);
-  const res = await fetch(`${baseUrl}/storage/v1/object/list/${bucketName}`, {
-    method: "POST",
-    headers: storageHeaders("application/json"),
-    body: JSON.stringify({ prefix: "products", limit: 100 }),
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error(await storageError(res, "Storage image list failed"));
-  }
-  const data = await res.json();
-  return data.filter((f: any) => f.name && !f.name.endsWith("/")).map((f: any) => ({
-    name: f.name,
-    path: `products/${f.name}`,
-    url: `${baseUrl}/storage/v1/object/public/${bucketName}/products/${f.name}`,
-    updated_at: f.updated_at,
-  }));
+  const folders = ["products", "media", "uploads"];
+  const results = await Promise.all(
+    folders.map((folder) =>
+      listStorageObjects(folder).catch((error) => {
+        console.error("Storage folder list failed", { folder, error });
+        return [];
+      })
+    )
+  );
+  const flattened = results.flat();
+  const seen = new Set<string>();
+
+  return flattened
+    .filter((item) => {
+      if (seen.has(item.path)) {
+        return false;
+      }
+      seen.add(item.path);
+      return true;
+    })
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
 }
