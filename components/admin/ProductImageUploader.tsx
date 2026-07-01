@@ -46,7 +46,8 @@ export default function ProductImageUploader({ defaultUrl = "", slug = "" }: Pro
 
       setImageUrl(payload.url);
       setStatus("success");
-      setMessage("Image uploaded and URL filled. 图片已上传，链接已自动填入。");
+      setMessage("Image uploaded and URL filled. 图片已上传，链接已自动填入。点击保存产品后前台会使用这张图。");
+      input.value = "";
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Image upload failed. Please try again.");
@@ -65,8 +66,16 @@ export default function ProductImageUploader({ defaultUrl = "", slug = "" }: Pro
     <div className="product-image-uploader">
       <label className="product-image-file">
         <span>Upload Image 上传图片</span>
-        <input type="file" accept="image/*" onChange={handleFileChange} disabled={status === "uploading"} />
-        <small>{fileName || "Select an image to upload and auto-fill the URL. 选择图片后会自动上传并填入链接。"}</small>
+        <input
+          name="image_file"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          disabled={status === "uploading"}
+        />
+        <small>
+          {fileName || "Select an image to upload and auto-fill the URL. 选择图片后会自动上传并填入链接。"}
+        </small>
       </label>
       <label>
         Image URL 图片链接
