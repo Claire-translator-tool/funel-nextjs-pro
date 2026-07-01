@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/admin-api";
 import { hasSupabaseAdminConfig, supabaseRest } from "@/lib/supabase";
-import { uploadPublicImage, uploadPublicImageBuffer } from "@/lib/supabase-storage";
+import {
+  isSupabaseStorageAuthorizationError,
+  uploadPublicImage,
+  uploadPublicImageBuffer,
+} from "@/lib/supabase-storage";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
@@ -28,8 +32,11 @@ async function processImage(file: File, slug: string): Promise<string> {
       .toBuffer();
     const path = `products/${safeSegment(slug)}-${Date.now()}.webp`;
     return await uploadPublicImageBuffer({ buffer: webp, path, contentType: "image/webp" });
-  } catch {
-    // Fallback: upload original
+  } catch (error) {
+    if (isSupabaseStorageAuthorizationError(error)) {
+      throw error;
+    }
+
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `products/${safeSegment(slug)}-${Date.now()}.${ext}`;
     return await uploadPublicImage({ file, path });
