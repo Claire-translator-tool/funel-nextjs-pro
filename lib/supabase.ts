@@ -2,12 +2,26 @@ export const expectedSupabaseRef = process.env.FUNEL_EXPECTED_SUPABASE_REF || "g
 export const expectedSupabaseUrl =
   process.env.FUNEL_SUPABASE_URL || `https://${expectedSupabaseRef}.supabase.co`;
 export const configuredSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const fallbackSupabasePublishableKey = "sb_publishable_Tjl0nfHNjM1C7TvCxbY1aw_-3aGCOBr";
+export const fallbackSupabasePublishableKey = "sb_publishable_Tjl0nfHNjM1C7TvCxbY1aw_-3aGCOBr";
 export const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   fallbackSupabasePublishableKey;
 export const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+export function getSupabaseAuthKeys() {
+  return Array.from(
+    new Set(
+      [
+        supabaseAnonKey,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        fallbackSupabasePublishableKey,
+        supabaseServiceRoleKey,
+      ].filter(Boolean)
+    )
+  );
+}
 
 function projectRefFromUrl(value: string): string {
   try {
@@ -32,7 +46,7 @@ export const supabaseUrl = shouldUseExpectedSupabaseUrl()
   : configuredSupabaseUrl;
 
 export function hasSupabaseAdminConfig() {
-  return !!(supabaseUrl && (supabaseServiceRoleKey || supabaseAnonKey));
+  return !!(supabaseUrl && (supabaseServiceRoleKey || supabaseAnonKey || fallbackSupabasePublishableKey));
 }
 
 export function cleanSupabaseUrl(value = supabaseUrl) {
@@ -59,6 +73,7 @@ export function supabaseRuntimeContext(key: string) {
     using_url_fallback: supabaseUrl !== configuredSupabaseUrl,
     key_type: keyKind(key),
     has_publishable_key: Boolean(supabaseAnonKey),
+    has_fallback_publishable_key: Boolean(fallbackSupabasePublishableKey),
     has_secret_key: Boolean(supabaseServiceRoleKey),
   };
 }
@@ -112,9 +127,7 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
 }
 
 export async function getSupabaseUser(token: string) {
-  const authKeys = Array.from(new Set([supabaseAnonKey, supabaseServiceRoleKey].filter(Boolean)));
-
-  for (const key of authKeys) {
+  for (const key of getSupabaseAuthKeys()) {
     const res = await fetch(`${cleanSupabaseUrl()}/auth/v1/user`, {
       headers: {
         apikey: key,
