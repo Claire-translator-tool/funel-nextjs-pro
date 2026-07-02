@@ -72,6 +72,7 @@ async function findFirstXlsx(packageRoot: string) {
 export async function importProductsFromZip(params: {
   zipPath: string;
   publishMode: "draft" | "published";
+  adminToken?: string;
 }): Promise<ProductImportSummary> {
   const extractDir = path.join(os.tmpdir(), `funel-product-import-${Date.now()}`);
   const summary: ProductImportSummary = {
@@ -99,13 +100,18 @@ export async function importProductsFromZip(params: {
       try {
         const productSpecs = findRelatedSpecs(product, specifications);
         const productFaqs = findRelatedFaqs(product, faqs);
-        const media = await processAndUploadProductImages({ extractRoot: packageRoot, product });
+        const media = await processAndUploadProductImages({
+          extractRoot: packageRoot,
+          product,
+          adminToken: params.adminToken,
+        });
         const result = await upsertImportedProduct({
           product,
           specifications: productSpecs,
           faqs: productFaqs,
           imageUrl: media.mainImageUrl,
           published: params.publishMode === "published",
+          adminToken: params.adminToken,
         });
 
         summary[result] += 1;
@@ -136,4 +142,4 @@ export async function importProductsFromZip(params: {
   }
 
   return summary;
-    }
+}
