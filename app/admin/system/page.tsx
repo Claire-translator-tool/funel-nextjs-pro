@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+import { createHash } from "crypto";
 import type { ReactNode } from "react";
 import AdminShell from "@/components/admin/AdminShell";
 import { requireAdminPage } from "@/lib/admin-page";
@@ -37,6 +39,10 @@ const defaultProbeSlug = "online-dissolved-oxygen-analyzer-pfdo-800";
 const deploymentUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "Local or unknown deployment";
 const deploymentSha = process.env.VERCEL_GIT_COMMIT_SHA || "";
 const deploymentMessage = process.env.VERCEL_GIT_COMMIT_MESSAGE || "";
+const tinyPng = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+  "base64"
+);
 
 function supabaseProjectRef(value: string) {
   if (!value) return "Missing";
@@ -53,6 +59,19 @@ function mask(value: string) {
   if (!value) return "Missing";
   if (value.length <= 14) return "Configured";
   return `${value.slice(0, 10)}...${value.slice(-4)}`;
+}
+
+function fingerprint(value: string) {
+  if (!value) return "Missing";
+  return createHash("sha256").update(value).digest("hex").slice(0, 12);
+}
+
+function keyKind(value: string) {
+  if (!value) return "Missing";
+  if (value.startsWith("sb_secret_")) return "sb_secret";
+  if (value.startsWith("sb_publishable_")) return "sb_publishable";
+  if (value.split(".").length === 3) return "legacy JWT";
+  return "custom";
 }
 
 function shortSha(value: string) {
@@ -73,12 +92,17 @@ function envRows() {
     { key: "Active Supabase project ref", value: activeProjectRef },
     { key: "Expected project ref", value: expectedSupabaseRef },
     { key: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", value: mask(supabaseAnonKey) },
-    { key: "SUPABASE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY", value: mask(supabaseServiceRoleKey) },
+    { key: "SUPABASE_SECRET_KEY type", value: keyKind(supabaseServiceRoleKey) },
+    { key: "SUPABASE_SECRET_KEY fingerprint", value: fingerprint(supabaseServiceRoleKey) },
     { key: "SUPABASE_STORAGE_BUCKET", value: storageBucket },
   ];
 }
 
-async function readJson<T>(path: string): Promise<CheckResult<T>> {
+async function supabaseRequest<T>(
+  path: string,
+  init: RequestInit = {},
+  successMessage = "Connected"
+): Promise<CheckResult<T>> {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     return {
       ok: false,
@@ -88,27 +112,27 @@ async function readJson<T>(path: string): Promise<CheckResult<T>> {
 
   try {
     const response = await fetch(`${cleanSupabaseUrl(supabaseUrl)}${path}`, {
-      headers: supabaseApiHeaders(supabaseServiceRoleKey, { Accept: "application/json" }),
+      ...init,
+      headers: {
+        ...supabaseApiHeaders(supabaseServiceRoleKey, { Accept: "application/json" }),
+        ...((init.headers as Record<string, string> | undefined) || {}),
+      },
       cache: "no-store",
     });
     const text = await response.text();
-    let data: T | undefined;
+    let data: T | string | undefined;
 
     try {
       data = text ? (JSON.parse(text) as T) : undefined;
     } catch {
-      return {
-        ok: false,
-        status: response.status,
-        message: text || "Response was not JSON.",
-      };
+      data = text;
     }
 
     return {
       ok: response.ok,
       status: response.status,
-      message: response.ok ? "Connected" : JSON.stringify(data),
-      data,
+      message: response.ok ? successMessage : typeof data === "string" ? data : JSON.stringify(data),
+      data: typeof data === "string" ? undefined : data,
     };
   } catch (error) {
     return {
@@ -116,6 +140,10 @@ async function readJson<T>(path: string): Promise<CheckResult<T>> {
       message: error instanceof Error ? error.message : "Request failed.",
     };
   }
+}
+
+async function readJson<T>(path: string): Promise<CheckResult<T>> {
+  return supabaseRequest<T>(path);
 }
 
 async function getProductChecks(probeSlug: string) {
@@ -133,6 +161,108 @@ async function getStorageCheck() {
   return readJson<{ id: string; name: string; public: boolean; file_size_limit?: number }>(
     `/storage/v1/bucket/${storageBucket}`
   );
+}
+
+async function getProductWriteProbe() {
+  const slug = `codex-system-probe-${Date.now()}`;
+  const insert = await supabaseRequest<ProductProbe[]>(
+    "/rest/v1/products?select=id,slug,name,published",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        slug,
+        name: "Codex System Probe Product",
+        summary: "Temporary admin write probe. Safe to delete.",
+        published: false,
+      }),
+    },
+    "Temporary product created"
+  );
+
+  if (!insert.ok) {
+    return {
+      ...insert,
+      message: `Insert failed: ${insert.message}`,
+    };
+  }
+
+  const cleanup = await supabaseRequest(
+    `/rest/v1/products?slug=eq.${encodeURIComponent(slug)}`,
+    {
+      method: "DELETE",
+      headers: { Prefer: "return=minimal" },
+    },
+    "Temporary product deleted"
+  );
+
+  if (!cleanup.ok) {
+    return {
+      ok: false,
+      status: cleanup.status,
+      message: `Temporary product was created but cleanup failed: ${cleanup.message}`,
+      data: insert.data,
+    };
+  }
+
+  return {
+    ok: true,
+    status: insert.status,
+    message: "Created and deleted a temporary product successfully. 产品写入与删除测试通过。",
+    data: insert.data,
+  };
+}
+
+async function getStorageWriteProbe() {
+  const objectPath = `media/codex-system-probe-${Date.now()}.png`;
+  const upload = await supabaseRequest<{ Key?: string; Id?: string }>(
+    `/storage/v1/object/${storageBucket}/${objectPath}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "image/png",
+        "x-upsert": "true",
+      },
+      body: tinyPng,
+    },
+    "Temporary image uploaded"
+  );
+
+  if (!upload.ok) {
+    return {
+      ...upload,
+      message: `Upload failed: ${upload.message}`,
+    };
+  }
+
+  const cleanup = await supabaseRequest(
+    `/storage/v1/object/${storageBucket}/${objectPath}`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prefixes: [objectPath] }),
+    },
+    "Temporary image deleted"
+  );
+
+  if (!cleanup.ok) {
+    return {
+      ok: false,
+      status: cleanup.status,
+      message: `Image uploaded but cleanup failed: ${cleanup.message}`,
+      data: upload.data,
+    };
+  }
+
+  return {
+    ok: true,
+    status: upload.status,
+    message: "Uploaded and deleted a temporary PNG successfully. 图片上传与删除测试通过。",
+    data: upload.data,
+  };
 }
 
 function StatusPill({ ok }: { ok: boolean }) {
@@ -174,13 +304,15 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
   const probeSlug = Array.isArray(rawProbeSlug)
     ? rawProbeSlug[0] || defaultProbeSlug
     : rawProbeSlug || defaultProbeSlug;
-  const [{ published, probe }, storage] = await Promise.all([
+  const [{ published, probe }, storage, productWrite, storageWrite] = await Promise.all([
     getProductChecks(probeSlug),
     getStorageCheck(),
+    getProductWriteProbe(),
+    getStorageWriteProbe(),
   ]);
   const publishedProducts = Array.isArray(published.data) ? published.data : [];
   const probeProduct = Array.isArray(probe.data) ? probe.data[0] : null;
-  const databaseLooksReady = published.ok && probe.ok && storage.ok;
+  const databaseLooksReady = published.ok && probe.ok && storage.ok && productWrite.ok && storageWrite.ok;
 
   return (
     <AdminShell admin={admin}>
@@ -220,6 +352,23 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
               <code>{expectedSupabaseRef}</code> 项目的值后重新部署。
             </p>
           ) : null}
+        </DiagnosticCard>
+
+        <DiagnosticCard title="Live product write probe 产品真实写入测试" ok={productWrite.ok}>
+          <p>
+            Status 请求状态：<strong>{productWrite.status || "n/a"}</strong>
+          </p>
+          <p className={productWrite.ok ? "system-success" : "system-error"}>{productWrite.message}</p>
+        </DiagnosticCard>
+
+        <DiagnosticCard title="Live image upload probe 图片真实上传测试" ok={storageWrite.ok}>
+          <p>
+            Bucket：<code>{storageBucket}</code>
+          </p>
+          <p>
+            Status 请求状态：<strong>{storageWrite.status || "n/a"}</strong>
+          </p>
+          <p className={storageWrite.ok ? "system-success" : "system-error"}>{storageWrite.message}</p>
         </DiagnosticCard>
 
         <DiagnosticCard title="Supabase products 产品数据" ok={published.ok && publishedProducts.length > 0}>
