@@ -30,7 +30,7 @@ export async function getAdminSession() {
 
   // Local-only fallback for development. Production must use Supabase Auth.
   if (token.startsWith("fallback-admin:") && allowFallbackAdminSession()) {
-    return { id: "fallback", email: "admin@funel-sensor.com", role: "admin" };
+    return { id: "fallback", email: "admin@funel-sensor.com", role: "admin", token };
   }
 
   // Supabase JWT-based login
@@ -43,13 +43,15 @@ export async function getAdminSession() {
     // Try admin_profiles table first
     try {
       const profiles: any[] = await supabaseRest(
-        `admin_profiles?user_id=eq.${user.id}&limit=1`
+        `admin_profiles?user_id=eq.${user.id}&limit=1`,
+        { token }
       );
       if (profiles[0]?.role === "admin") {
         return {
           id: profiles[0].user_id,
           email: profiles[0].email || user.email,
           role: profiles[0].role || "admin",
+          token,
         };
       }
     } catch {
@@ -58,7 +60,7 @@ export async function getAdminSession() {
 
     // If admin_profiles is not ready yet, only allow the configured owner email.
     if (isAllowedAdminEmail(user.email)) {
-      return { id: user.id, email: user.email, role: "admin" };
+      return { id: user.id, email: user.email, role: "admin", token };
     }
 
     return null;
