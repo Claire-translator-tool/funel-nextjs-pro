@@ -2,7 +2,7 @@ export const expectedSupabaseRef = process.env.FUNEL_EXPECTED_SUPABASE_REF || "g
 export const expectedSupabaseUrl =
   process.env.FUNEL_SUPABASE_URL || `https://${expectedSupabaseRef}.supabase.co`;
 export const configuredSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-export const fallbackSupabasePublishableKey = "sb_publishable_Tjl0nfHNjM1C7TvCxbY1aw_-3aGCOBr";
+export const fallbackSupabasePublishableKey = "sb_publishable_BnjPNRICrqXBvo1stdGDJQ_bVJaQ8Jt";
 export const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
