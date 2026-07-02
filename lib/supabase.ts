@@ -50,7 +50,11 @@ function getSupabaseRestKeys(useService: boolean) {
   );
 }
 
-function getSupabaseRestVariants(useService: boolean, token?: string) {
+function isMutationMethod(method = "GET") {
+  return !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+}
+
+function getSupabaseRestVariants(useService: boolean, token?: string, mutation = false) {
   const variants: Array<{ key: string; token?: string }> = [];
   const seen = new Set<string>();
   const push = (key: string, authToken?: string) => {
@@ -63,6 +67,13 @@ function getSupabaseRestVariants(useService: boolean, token?: string) {
 
   if (useService && supabaseServiceRoleKey) {
     push(supabaseServiceRoleKey);
+
+    // Admin writes must either succeed with the server key or fail loudly.
+    // Falling back to a browser session token hides the real problem and
+    // produces confusing RLS errors such as 42501.
+    if (mutation) {
+      return variants;
+    }
   }
 
   if (token) {
@@ -116,7 +127,7 @@ function keyKind(key: string) {
   if (!key) return "missing";
   if (key.startsWith("sb_secret_")) return "sb_secret";
   if (key.startsWith("sb_publishable_")) return "sb_publishable";
-  if (key.split(".").length === 3) return "jwt";
+  if (key.split(".").length === 3) return "legacy JWT";
   return "custom";
 }
 
@@ -184,10 +195,25 @@ function isLikelyAuthKeyFailure(status: number, bodyText: string) {
   );
 }
 
+function writeAuthHelp(status: number, key: string, text: string) {
+  const context = supabaseRuntimeContext(key);
+  const raw = text ? ` Response: ${text}` : "";
+
+  return [
+    `Supabase write failed (${status}, ${JSON.stringify(context)}).`,
+    "Admin writes must succeed with SUPABASE_SECRET_KEY on the server.",
+    "If this shows 401/403/RLS, update the Vercel SUPABASE_SECRET_KEY for project givzkjmmxmrxcxtlwlys and redeploy, or run /admin/system policy SQL if the key is correct.",
+    "后台写入必须通过服务端 SUPABASE_SECRET_KEY。若仍然显示 401/403/RLS，请检查 Vercel 里的 SUPABASE_SECRET_KEY 是否属于 givzkjmmxmrxcxtlwlys 项目，或在 /admin/system 运行权限 SQL。",
+    raw,
+  ].join(" ");
+}
+
 export async function supabaseRest<T = any>(path: string, options: any = {}): Promise<T> {
   const { prefer, headers: customHeaders, body, token, service, ...fetchOptions } = options;
+  const method = String(fetchOptions.method || "GET");
+  const mutation = isMutationMethod(method);
   const useService = service !== false;
-  const variants = getSupabaseRestVariants(useService, token);
+  const variants = getSupabaseRestVariants(useService, token, mutation);
   const preparedBody = prepareBody(body);
   let lastFailure: { status: number; key: string; text: string } | null = null;
 
@@ -217,6 +243,10 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
 
     lastFailure = { status: res.status, key: variant.key, text };
 
+    if (mutation && useService && supabaseServiceRoleKey) {
+      throw new Error(writeAuthHelp(res.status, variant.key, text));
+    }
+
     if (isLikelyAuthKeyFailure(res.status, text)) {
       continue;
     }
@@ -225,11 +255,13 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
   }
 
   if (lastFailure) {
-    throw new Error(
-      `Supabase error (${lastFailure.status}, ${JSON.stringify(
-        supabaseRuntimeContext(lastFailure.key)
-      )}): ${lastFailure.text}`
-    );
+    const message = mutation && useService
+      ? writeAuthHelp(lastFailure.status, lastFailure.key, lastFailure.text)
+      : `Supabase error (${lastFailure.status}, ${JSON.stringify(
+          supabaseRuntimeContext(lastFailure.key)
+        )}): ${lastFailure.text}`;
+
+    throw new Error(message);
   }
 
   throw new Error("Supabase error: no API key configured.");
