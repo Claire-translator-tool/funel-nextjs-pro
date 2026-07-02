@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import AdminShell from "@/components/admin/AdminShell";
 import { requireAdminPage } from "@/lib/admin-page";
+import { funelAdminPolicySql } from "@/lib/admin-policy-sql";
 import {
   cleanSupabaseUrl,
   configuredSupabaseUrl,
@@ -169,6 +170,7 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
   ]);
   const publishedProducts = Array.isArray(published.data) ? published.data : [];
   const probeProduct = Array.isArray(probe.data) ? probe.data[0] : null;
+  const databaseLooksReady = published.ok && probe.ok && storage.ok;
 
   return (
     <AdminShell admin={admin}>
@@ -273,6 +275,24 @@ export default async function AdminSystemPage({ searchParams }: PageProps) {
           ) : (
             <p className="system-error">{storage.message}</p>
           )}
+        </DiagnosticCard>
+
+        <DiagnosticCard title="Required admin policies 必需后台权限策略" ok={databaseLooksReady}>
+          <p>
+            如果产品保存、图片上传、批量导入出现 RLS、401 或 403，请在 Supabase SQL Editor 运行下面这段一次性 SQL。
+            它会补齐产品表、询盘表、页面表和 <code>product-images</code> 图片库的管理员权限。
+          </p>
+          <p>
+            <a
+              className="btn ghost"
+              href={`https://supabase.com/dashboard/project/${expectedSupabaseRef}/sql/new`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open Supabase SQL Editor 打开 Supabase SQL 编辑器
+            </a>
+          </p>
+          <textarea className="system-sql" readOnly defaultValue={funelAdminPolicySql} />
         </DiagnosticCard>
       </div>
     </AdminShell>
