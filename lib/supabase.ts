@@ -136,7 +136,11 @@ export function isSupabasePlatformKey(key: string) {
 
 function shouldSendBearerForServerKey(key: string) {
   const value = cleanKey(key);
-  return Boolean(value && (value.startsWith("sb_secret_") || !value.startsWith("sb_publishable_")));
+  // Supabase's new sb_publishable_ / sb_secret_ keys are API keys, not JWTs.
+  // Sending them as Bearer tokens makes Storage/PostgREST reject the request
+  // with "Invalid Compact JWS". Only legacy JWT service_role keys belong in
+  // the Authorization header.
+  return Boolean(value && !isSupabasePlatformKey(value) && value.split(".").length === 3);
 }
 
 function keyKind(key: string) {
