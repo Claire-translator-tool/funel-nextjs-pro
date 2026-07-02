@@ -23,6 +23,19 @@ export function getSupabaseAuthKeys() {
   );
 }
 
+function getSupabaseUserRestKeys() {
+  return Array.from(
+    new Set(
+      [
+        supabaseAnonKey,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        fallbackSupabasePublishableKey,
+      ].filter(Boolean)
+    )
+  );
+}
+
 function getSupabaseRestKeys(useService: boolean) {
   return Array.from(
     new Set(
@@ -35,6 +48,34 @@ function getSupabaseRestKeys(useService: boolean) {
       ].filter(Boolean)
     )
   );
+}
+
+function getSupabaseRestVariants(useService: boolean, token?: string) {
+  const variants: Array<{ key: string; token?: string }> = [];
+  const seen = new Set<string>();
+  const push = (key: string, authToken?: string) => {
+    if (!key) return;
+    const id = `${key}:${authToken || "service"}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    variants.push({ key, token: authToken });
+  };
+
+  if (useService && supabaseServiceRoleKey) {
+    push(supabaseServiceRoleKey);
+  }
+
+  if (token) {
+    for (const key of getSupabaseUserRestKeys()) {
+      push(key, token);
+    }
+  }
+
+  for (const key of getSupabaseRestKeys(useService)) {
+    push(key);
+  }
+
+  return variants;
 }
 
 function projectRefFromUrl(value: string): string {
@@ -102,6 +143,14 @@ export function supabaseApiHeaders(key: string, extra: Record<string, string> = 
   return headers;
 }
 
+function supabaseUserApiHeaders(key: string, token: string, extra: Record<string, string> = {}) {
+  return {
+    apikey: key,
+    Authorization: `Bearer ${token}`,
+    ...extra,
+  };
+}
+
 function prepareBody(body: unknown) {
   if (!body || typeof body === "string" || body instanceof Blob || body instanceof FormData) {
     return body as BodyInit | null | undefined;
@@ -128,22 +177,30 @@ function isLikelyAuthKeyFailure(status: number, bodyText: string) {
     text.includes("unauthorized") ||
     text.includes("jwt") ||
     text.includes("authorization") ||
-    text.includes("api key")
+    text.includes("api key") ||
+    text.includes("row-level security") ||
+    text.includes("rls") ||
+    text.includes("42501")
   );
 }
 
 export async function supabaseRest<T = any>(path: string, options: any = {}): Promise<T> {
-  const useService = options.service !== false;
-  const keys = getSupabaseRestKeys(useService);
-  const { prefer, headers: customHeaders, body, ...fetchOptions } = options;
+  const { prefer, headers: customHeaders, body, token, service, ...fetchOptions } = options;
+  const useService = service !== false;
+  const variants = getSupabaseRestVariants(useService, token);
   const preparedBody = prepareBody(body);
   let lastFailure: { status: number; key: string; text: string } | null = null;
 
-  for (const key of keys) {
-    const headers = supabaseApiHeaders(key, {
-      ...(prefer ? { Prefer: prefer } : {}),
-      ...(customHeaders || {}),
-    });
+  for (const variant of variants) {
+    const headers = variant.token
+      ? supabaseUserApiHeaders(variant.key, variant.token, {
+          ...(prefer ? { Prefer: prefer } : {}),
+          ...(customHeaders || {}),
+        })
+      : supabaseApiHeaders(variant.key, {
+          ...(prefer ? { Prefer: prefer } : {}),
+          ...(customHeaders || {}),
+        });
     const res = await fetch(`${cleanSupabaseUrl()}/rest/v1/${path}`, {
       ...fetchOptions,
       body: preparedBody,
@@ -158,13 +215,13 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
       return JSON.parse(text) as T;
     }
 
-    lastFailure = { status: res.status, key, text };
+    lastFailure = { status: res.status, key: variant.key, text };
 
     if (isLikelyAuthKeyFailure(res.status, text)) {
       continue;
     }
 
-    throw new Error(`Supabase error (${res.status}, ${JSON.stringify(supabaseRuntimeContext(key))}): ${text}`);
+    throw new Error(`Supabase error (${res.status}, ${JSON.stringify(supabaseRuntimeContext(variant.key))}): ${text}`);
   }
 
   if (lastFailure) {
