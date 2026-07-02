@@ -47,17 +47,26 @@ function looksLikeRlsFailure(detail: string) {
   return lower.includes("row-level security") || lower.includes("rls") || lower.includes("42501");
 }
 
+function looksLikeJwsFailure(detail: string) {
+  const lower = detail.toLowerCase();
+  return lower.includes("invalid compact jws") || lower.includes("jwt");
+}
+
 function storageAuthHelp(lastDetail = "") {
   const suffix = lastDetail ? ` Last response: ${lastDetail}` : "";
   const rlsHint = looksLikeRlsFailure(lastDetail)
-    ? " Supabase Storage RLS policy is missing for bucket product-images. Open /admin/system and run the one-time database policy SQL. Supabase 图片库缺少 Storage RLS 策略，请打开 /admin/system，复制并运行一次数据库权限 SQL。"
+    ? " If SUPABASE_SECRET_KEY is correct, run the /admin/system one-time Storage RLS SQL. 如果服务端密钥确认正确，请打开 /admin/system 并运行一次 Storage 权限 SQL。"
+    : "";
+  const jwsHint = looksLikeJwsFailure(lastDetail)
+    ? " A new sb_secret key must not be treated as a browser JWT. This code now sends it as the server apikey only. 新版 sb_secret 不是浏览器 JWT，本代码只会在服务端以 apikey 方式发送。"
     : "";
 
   return [
     "Supabase Storage authorization failed.",
-    "For new sb_secret keys, the key must be used only as the apikey header on the server; user access uses the admin session JWT.",
-    "Please verify Vercel env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, SUPABASE_STORAGE_BUCKET=product-images.",
-    "Supabase 图片库授权失败。请确认 Vercel 环境变量指向 givzkjmmxmrxcxtlwlys 项目，并确保 SUPABASE_STORAGE_BUCKET=product-images。",
+    "Admin image uploads must pass with the server-side SUPABASE_SECRET_KEY for project givzkjmmxmrxcxtlwlys.",
+    "Verify Vercel env vars: NEXT_PUBLIC_SUPABASE_URL=https://givzkjmmxmrxcxtlwlys.supabase.co, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, SUPABASE_STORAGE_BUCKET=product-images, then redeploy.",
+    "Supabase 图片库授权失败。后台图片上传必须使用 givzkjmmxmrxcxtlwlys 项目的服务端 SUPABASE_SECRET_KEY。请确认 Vercel 环境变量和 product-images 存储桶后重新部署。",
+    jwsHint,
     rlsHint,
     suffix,
   ]
@@ -87,10 +96,13 @@ function storageHeaderModes(contentType?: string, token?: string) {
     if (!isSupabasePlatformKey(supabaseServiceRoleKey)) {
       modes.push({ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` });
     } else {
-      // New sb_secret_* keys are not JWTs. Supabase rejects them in the
-      // Authorization header with "Invalid Compact JWS", so keep them in apikey only.
+      // New sb_secret_* keys are not JWTs. Keep them in apikey only.
       modes.push(base);
     }
+
+    // When a server key is configured, do not fall back to the user JWT.
+    // A bad server key should fail clearly instead of surfacing confusing RLS errors.
+    return modes;
   }
 
   if (token && supabaseAnonKey) {
@@ -230,7 +242,7 @@ export async function ensurePublicBucket(bucket = getMediaBucket(), token?: stri
       token
     );
   } catch (error) {
-    if (token && isSupabaseStorageAuthorizationError(error)) {
+    if (!supabaseServiceRoleKey && token && isSupabaseStorageAuthorizationError(error)) {
       // Authenticated users can upload through Storage RLS even when bucket admin
       // endpoints reject non-service credentials. Let the object upload prove it.
       return;
