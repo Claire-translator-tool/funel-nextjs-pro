@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/admin-api";
-import { hasSupabaseAdminConfig, supabaseRest } from "@/lib/supabase";
+import { adminErrorQuery, requireServerAdminKey } from "@/lib/admin-operation";
+import { supabaseRest } from "@/lib/supabase";
 import {
   isSupabaseStorageAuthorizationError,
   uploadPublicImage,
@@ -22,7 +23,7 @@ function safeSegment(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 90);
 }
 
-async function processImage(file: File, slug: string, token?: string): Promise<string> {
+async function processImage(file: File, slug: string): Promise<string> {
   try {
     const input = Buffer.from(await file.arrayBuffer());
     const webp = await sharp(input)
@@ -31,7 +32,7 @@ async function processImage(file: File, slug: string, token?: string): Promise<s
       .webp({ quality: 82 })
       .toBuffer();
     const path = `products/${safeSegment(slug)}-${Date.now()}.webp`;
-    return await uploadPublicImageBuffer({ buffer: webp, path, contentType: "image/webp", token });
+    return await uploadPublicImageBuffer({ buffer: webp, path, contentType: "image/webp" });
   } catch (error) {
     if (isSupabaseStorageAuthorizationError(error)) {
       throw error;
@@ -39,7 +40,7 @@ async function processImage(file: File, slug: string, token?: string): Promise<s
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `products/${safeSegment(slug)}-${Date.now()}.${ext}`;
-    return await uploadPublicImage({ file, path, token });
+    return await uploadPublicImage({ file, path });
   }
 }
 
@@ -56,13 +57,15 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const id = String(form.get("id") || "");
   const token = auth.admin.token;
-  if (!id || !hasSupabaseAdminConfig()) return back(request, "?error=missing_config");
+  if (!id) return back(request, "?error=missing_config");
 
   try {
+    requireServerAdminKey("Product update");
+
     const imageFile = form.get("image_file");
     let imageUrl = String(form.get("image_url") || "").trim() || null;
     if (imageFile instanceof File && imageFile.size > 0) {
-      imageUrl = await processImage(imageFile, String(form.get("slug") || "product"), token);
+      imageUrl = await processImage(imageFile, String(form.get("slug") || "product"));
     }
 
     const payload = {
@@ -92,7 +95,6 @@ export async function POST(request: Request) {
     return back(request, "?saved=1");
   } catch (err) {
     console.error("Product update/upload failed", err);
-    const msg = err instanceof Error ? err.message : "upload_failed";
-    return back(request, `?error=${encodeURIComponent(msg)}`);
+    return back(request, `?error=${adminErrorQuery(err, "Product update")}`);
   }
 }
