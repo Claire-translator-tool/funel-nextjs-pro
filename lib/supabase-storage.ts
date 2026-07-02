@@ -39,7 +39,14 @@ function cleanKey(value: string) {
 
 function shouldSendBearerForServerKey(key: string) {
   const value = cleanKey(key);
-  return Boolean(value && (value.startsWith("sb_secret_") || !value.startsWith("sb_publishable_")));
+  // Supabase's new sb_secret_ keys must be sent as apikey only. The
+  // Authorization header is reserved for legacy JWT service_role keys.
+  return Boolean(
+    value &&
+      !value.startsWith("sb_secret_") &&
+      !value.startsWith("sb_publishable_") &&
+      value.split(".").length === 3
+  );
 }
 
 export function getMediaBucket() {
