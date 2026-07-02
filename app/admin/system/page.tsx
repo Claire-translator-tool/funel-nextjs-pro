@@ -34,6 +34,9 @@ type ProductProbe = {
 
 const storageBucket = process.env.SUPABASE_STORAGE_BUCKET || "product-images";
 const defaultProbeSlug = "online-dissolved-oxygen-analyzer-pfdo-800";
+const deploymentUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "Local or unknown deployment";
+const deploymentSha = process.env.VERCEL_GIT_COMMIT_SHA || "";
+const deploymentMessage = process.env.VERCEL_GIT_COMMIT_MESSAGE || "";
 
 function supabaseProjectRef(value: string) {
   if (!value) return "Missing";
@@ -52,11 +55,18 @@ function mask(value: string) {
   return `${value.slice(0, 10)}...${value.slice(-4)}`;
 }
 
+function shortSha(value: string) {
+  return value ? value.slice(0, 12) : "Unknown";
+}
+
 function envRows() {
   const configuredProjectRef = supabaseProjectRef(configuredSupabaseUrl);
   const activeProjectRef = supabaseProjectRef(supabaseUrl);
 
   return [
+    { key: "Vercel active deployment URL", value: deploymentUrl },
+    { key: "Vercel commit SHA", value: shortSha(deploymentSha) },
+    { key: "Vercel commit message", value: deploymentMessage || "Unknown" },
     { key: "Vercel NEXT_PUBLIC_SUPABASE_URL", value: mask(configuredSupabaseUrl) },
     { key: "Vercel configured project ref", value: configuredProjectRef },
     { key: "Active Supabase URL used by site", value: mask(supabaseUrl) },
