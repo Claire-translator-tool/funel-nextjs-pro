@@ -13,6 +13,7 @@ type UpsertParams = {
   faqs: FaqImportRow[];
   imageUrl: string;
   published: boolean;
+  adminToken?: string;
 };
 
 function buildSpecs(product: ProductImportRow, specifications: SpecificationImportRow[]) {
@@ -75,7 +76,7 @@ function buildKeywords(product: ProductImportRow) {
 }
 
 export async function upsertImportedProduct(params: UpsertParams): Promise<"created" | "updated"> {
-  const { product, specifications, imageUrl, published } = params;
+  const { product, specifications, imageUrl, published, adminToken } = params;
   const payload: Partial<CmsProduct> = {
     slug: product.slug,
     model: product.model,
@@ -93,7 +94,8 @@ export async function upsertImportedProduct(params: UpsertParams): Promise<"crea
   };
 
   const existing = await supabaseRest<Array<Pick<CmsProduct, "id" | "slug" | "published">>>(
-    `products?slug=eq.${encodeURIComponent(product.slug)}&select=id,slug,published&limit=1`
+    `products?slug=eq.${encodeURIComponent(product.slug)}&select=id,slug,published&limit=1`,
+    { token: adminToken }
   );
 
   if (existing[0]?.id) {
@@ -107,6 +109,7 @@ export async function upsertImportedProduct(params: UpsertParams): Promise<"crea
       method: "PATCH",
       prefer: "return=representation",
       body: updatePayload,
+      token: adminToken,
     });
     return "updated";
   }
@@ -115,7 +118,8 @@ export async function upsertImportedProduct(params: UpsertParams): Promise<"crea
     method: "POST",
     prefer: "return=representation",
     body: payload,
+    token: adminToken,
   });
 
   return "created";
-    }
+}
