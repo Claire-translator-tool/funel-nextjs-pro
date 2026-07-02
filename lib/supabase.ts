@@ -1,24 +1,32 @@
-export const expectedSupabaseRef = process.env.FUNEL_EXPECTED_SUPABASE_REF || "givzkjmmxmrxcxtlwlys";
+function readEnv(name: string) {
+  return (process.env[name] || "").trim();
+}
+
+function cleanKey(value: string) {
+  return value.trim();
+}
+
+export const expectedSupabaseRef = readEnv("FUNEL_EXPECTED_SUPABASE_REF") || "givzkjmmxmrxcxtlwlys";
 export const expectedSupabaseUrl =
-  process.env.FUNEL_SUPABASE_URL || `https://${expectedSupabaseRef}.supabase.co`;
-export const configuredSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  readEnv("FUNEL_SUPABASE_URL") || `https://${expectedSupabaseRef}.supabase.co`;
+export const configuredSupabaseUrl = readEnv("NEXT_PUBLIC_SUPABASE_URL");
 export const fallbackSupabasePublishableKey = "sb_publishable_BnjPNRICrqXBvo1stdGDJQ_bVJaQ8Jt";
 export const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  readEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ||
+  readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||
   fallbackSupabasePublishableKey;
-export const supabaseServiceRoleKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+export const supabaseServiceRoleKey = readEnv("SUPABASE_SECRET_KEY") || readEnv("SUPABASE_SERVICE_ROLE_KEY");
 
 export function getSupabaseAuthKeys() {
   return Array.from(
     new Set(
       [
         supabaseAnonKey,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        readEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+        readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
         fallbackSupabasePublishableKey,
         supabaseServiceRoleKey,
-      ].filter(Boolean)
+      ].map(cleanKey).filter(Boolean)
     )
   );
 }
@@ -28,10 +36,10 @@ function getSupabaseUserRestKeys() {
     new Set(
       [
         supabaseAnonKey,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        readEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+        readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
         fallbackSupabasePublishableKey,
-      ].filter(Boolean)
+      ].map(cleanKey).filter(Boolean)
     )
   );
 }
@@ -42,10 +50,10 @@ function getSupabaseRestKeys(useService: boolean) {
       [
         useService ? supabaseServiceRoleKey : "",
         supabaseAnonKey,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        readEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+        readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
         fallbackSupabasePublishableKey,
-      ].filter(Boolean)
+      ].map(cleanKey).filter(Boolean)
     )
   );
 }
@@ -58,11 +66,13 @@ function getSupabaseRestVariants(useService: boolean, token?: string, mutation =
   const variants: Array<{ key: string; token?: string }> = [];
   const seen = new Set<string>();
   const push = (key: string, authToken?: string) => {
-    if (!key) return;
-    const id = `${key}:${authToken || "service"}`;
+    const nextKey = cleanKey(key);
+    const nextToken = authToken ? cleanKey(authToken) : undefined;
+    if (!nextKey) return;
+    const id = `${nextKey}:${nextToken || "service"}`;
     if (seen.has(id)) return;
     seen.add(id);
-    variants.push({ key, token: authToken });
+    variants.push({ key: nextKey, token: nextToken });
   };
 
   if (useService && supabaseServiceRoleKey) {
@@ -99,7 +109,7 @@ function projectRefFromUrl(value: string): string {
 }
 
 function shouldUseExpectedSupabaseUrl() {
-  if (process.env.FUNEL_DISABLE_SUPABASE_URL_FALLBACK === "true") return false;
+  if (readEnv("FUNEL_DISABLE_SUPABASE_URL_FALLBACK") === "true") return false;
   if (!expectedSupabaseRef) return false;
   if (!configuredSupabaseUrl) return true;
 
@@ -116,18 +126,25 @@ export function hasSupabaseAdminConfig() {
 }
 
 export function cleanSupabaseUrl(value = supabaseUrl) {
-  return value.replace(/\/+$/, "");
+  return value.trim().replace(/\/+$/, "");
 }
 
 export function isSupabasePlatformKey(key: string) {
-  return key.startsWith("sb_secret_") || key.startsWith("sb_publishable_");
+  const value = cleanKey(key);
+  return value.startsWith("sb_secret_") || value.startsWith("sb_publishable_");
+}
+
+function shouldSendBearerForServerKey(key: string) {
+  const value = cleanKey(key);
+  return Boolean(value && (value.startsWith("sb_secret_") || !value.startsWith("sb_publishable_")));
 }
 
 function keyKind(key: string) {
-  if (!key) return "missing";
-  if (key.startsWith("sb_secret_")) return "sb_secret";
-  if (key.startsWith("sb_publishable_")) return "sb_publishable";
-  if (key.split(".").length === 3) return "legacy JWT";
+  const value = cleanKey(key);
+  if (!value) return "missing";
+  if (value.startsWith("sb_secret_")) return "sb_secret";
+  if (value.startsWith("sb_publishable_")) return "sb_publishable";
+  if (value.split(".").length === 3) return "legacy JWT";
   return "custom";
 }
 
@@ -145,19 +162,20 @@ export function supabaseRuntimeContext(key: string) {
 }
 
 export function supabaseApiHeaders(key: string, extra: Record<string, string> = {}) {
-  const headers: Record<string, string> = { apikey: key, ...extra };
+  const value = cleanKey(key);
+  const headers: Record<string, string> = { apikey: value };
 
-  if (key && !isSupabasePlatformKey(key)) {
-    headers.Authorization = `Bearer ${key}`;
+  if (shouldSendBearerForServerKey(value)) {
+    headers.Authorization = `Bearer ${value}`;
   }
 
-  return headers;
+  return { ...headers, ...extra };
 }
 
 function supabaseUserApiHeaders(key: string, token: string, extra: Record<string, string> = {}) {
   return {
-    apikey: key,
-    Authorization: `Bearer ${token}`,
+    apikey: cleanKey(key),
+    Authorization: `Bearer ${cleanKey(token)}`,
     ...extra,
   };
 }
@@ -272,7 +290,7 @@ export async function getSupabaseUser(token: string) {
     const res = await fetch(`${cleanSupabaseUrl()}/auth/v1/user`, {
       headers: {
         apikey: key,
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanKey(token)}`,
       },
     });
 
