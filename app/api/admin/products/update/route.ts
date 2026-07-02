@@ -22,7 +22,7 @@ function safeSegment(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 90);
 }
 
-async function processImage(file: File, slug: string): Promise<string> {
+async function processImage(file: File, slug: string, token?: string): Promise<string> {
   try {
     const input = Buffer.from(await file.arrayBuffer());
     const webp = await sharp(input)
@@ -31,7 +31,7 @@ async function processImage(file: File, slug: string): Promise<string> {
       .webp({ quality: 82 })
       .toBuffer();
     const path = `products/${safeSegment(slug)}-${Date.now()}.webp`;
-    return await uploadPublicImageBuffer({ buffer: webp, path, contentType: "image/webp" });
+    return await uploadPublicImageBuffer({ buffer: webp, path, contentType: "image/webp", token });
   } catch (error) {
     if (isSupabaseStorageAuthorizationError(error)) {
       throw error;
@@ -39,7 +39,7 @@ async function processImage(file: File, slug: string): Promise<string> {
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const path = `products/${safeSegment(slug)}-${Date.now()}.${ext}`;
-    return await uploadPublicImage({ file, path });
+    return await uploadPublicImage({ file, path, token });
   }
 }
 
@@ -55,13 +55,14 @@ export async function POST(request: Request) {
 
   const form = await request.formData();
   const id = String(form.get("id") || "");
+  const token = auth.admin.token;
   if (!id || !hasSupabaseAdminConfig()) return back(request, "?error=missing_config");
 
   try {
     const imageFile = form.get("image_file");
     let imageUrl = String(form.get("image_url") || "").trim() || null;
     if (imageFile instanceof File && imageFile.size > 0) {
-      imageUrl = await processImage(imageFile, String(form.get("slug") || "product"));
+      imageUrl = await processImage(imageFile, String(form.get("slug") || "product"), token);
     }
 
     const payload = {
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
       method: "PATCH",
       prefer: "return=minimal",
       body: payload,
+      token,
     });
 
     return back(request, "?saved=1");
