@@ -42,13 +42,23 @@ export function getPublicStorageUrl(bucket: string, path: string) {
   return `${cleanSupabaseUrl(supabaseUrl)}/storage/v1/object/public/${bucket}/${path}`;
 }
 
+function looksLikeRlsFailure(detail: string) {
+  const lower = detail.toLowerCase();
+  return lower.includes("row-level security") || lower.includes("rls") || lower.includes("42501");
+}
+
 function storageAuthHelp(lastDetail = "") {
   const suffix = lastDetail ? ` Last response: ${lastDetail}` : "";
+  const rlsHint = looksLikeRlsFailure(lastDetail)
+    ? " Supabase Storage RLS policy is missing for bucket product-images. Open /admin/system and run the one-time database policy SQL. Supabase 图片库缺少 Storage RLS 策略，请打开 /admin/system，复制并运行一次数据库权限 SQL。"
+    : "";
 
   return [
     "Supabase Storage authorization failed.",
-    "Please update Vercel Environment Variables: SUPABASE_SECRET_KEY must be the Secret key from the givzkjmmxmrxcxtlwlys Supabase project, and SUPABASE_STORAGE_BUCKET should be product-images. Then redeploy.",
-    "Supabase 图片库授权失败。请在 Vercel 环境变量中更新：SUPABASE_SECRET_KEY 必须填写 givzkjmmxmrxcxtlwlys 这个 Supabase 项目的 Secret key，SUPABASE_STORAGE_BUCKET 填 product-images，然后重新部署。",
+    "For new sb_secret keys, the key must be used only as the apikey header on the server; user access uses the admin session JWT.",
+    "Please verify Vercel env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, SUPABASE_STORAGE_BUCKET=product-images.",
+    "Supabase 图片库授权失败。请确认 Vercel 环境变量指向 givzkjmmxmrxcxtlwlys 项目，并确保 SUPABASE_STORAGE_BUCKET=product-images。",
+    rlsHint,
     suffix,
   ]
     .filter(Boolean)
@@ -57,7 +67,7 @@ function storageAuthHelp(lastDetail = "") {
 
 export function isSupabaseStorageAuthorizationError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || "");
-  return message.includes("Supabase Storage authorization failed") || message.includes("SUPABASE_SECRET_KEY must be");
+  return message.includes("Supabase Storage authorization failed") || message.includes("Supabase 图片库授权失败");
 }
 
 function addContentType(headers: Record<string, string>, contentType?: string) {
@@ -77,8 +87,9 @@ function storageHeaderModes(contentType?: string, token?: string) {
     if (!isSupabasePlatformKey(supabaseServiceRoleKey)) {
       modes.push({ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` });
     } else {
+      // New sb_secret_* keys are not JWTs. Supabase rejects them in the
+      // Authorization header with "Invalid Compact JWS", so keep them in apikey only.
       modes.push(base);
-      modes.push({ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` });
     }
   }
 
@@ -191,19 +202,15 @@ function isBucketMissing(status: number, detail: string) {
     status === 404 ||
     lower.includes("bucket not found") ||
     (lower.includes("bucket") && lower.includes("not found")) ||
-    lower.includes('"statuscode":"404"') ||
-    lower.includes('"statuscode":404')
+    lower.includes('\"statuscode\":\"404\"') ||
+    lower.includes('\"statuscode\":404')
   );
 }
 
 function isBucketAlreadyExists(status: number, detail: string) {
   const lower = detail.toLowerCase();
 
-  return (
-    status === 409 ||
-    lower.includes("already exists") ||
-    lower.includes("duplicate")
-  );
+  return status === 409 || lower.includes("already exists") || lower.includes("duplicate");
 }
 
 export async function ensurePublicBucket(bucket = getMediaBucket(), token?: string) {
