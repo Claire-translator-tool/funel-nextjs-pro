@@ -223,6 +223,7 @@ function writeAuthHelp(status: number, key: string, text: string) {
 
   return [
     `Supabase write failed (${status}, ${JSON.stringify(context)}).`,
+    "SUPABASE_SECRET_KEY is missing or invalid for this server write.",
     "Admin writes must succeed with SUPABASE_SECRET_KEY on the server.",
     "If this shows 401/403/RLS, update the Vercel SUPABASE_SECRET_KEY for project givzkjmmxmrxcxtlwlys and redeploy, or run /admin/system policy SQL if the key is correct.",
     "后台写入必须通过服务端 SUPABASE_SECRET_KEY。若仍然显示 401/403/RLS，请检查 Vercel 里的 SUPABASE_SECRET_KEY 是否属于 givzkjmmxmrxcxtlwlys 项目，或在 /admin/system 运行权限 SQL。",
@@ -235,6 +236,11 @@ export async function supabaseRest<T = any>(path: string, options: any = {}): Pr
   const method = String(fetchOptions.method || "GET");
   const mutation = isMutationMethod(method);
   const useService = service !== false;
+
+  if (mutation && useService && !supabaseServiceRoleKey) {
+    throw new Error(writeAuthHelp(401, supabaseAnonKey || "", "SUPABASE_SECRET_KEY is missing from the current Vercel deployment."));
+  }
+
   const variants = getSupabaseRestVariants(useService, token, mutation);
   const preparedBody = prepareBody(body);
   let lastFailure: { status: number; key: string; text: string } | null = null;
