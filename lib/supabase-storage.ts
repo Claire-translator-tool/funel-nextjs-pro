@@ -1,6 +1,7 @@
 import {
   cleanSupabaseUrl,
   isSupabasePlatformKey,
+  supabaseAnonKey,
   supabaseServiceRoleKey,
   supabaseUrl,
 } from "./supabase";
@@ -59,24 +60,45 @@ export function isSupabaseStorageAuthorizationError(error: unknown) {
   return message.includes("Supabase Storage authorization failed") || message.includes("SUPABASE_SECRET_KEY must be");
 }
 
-function storageHeaderModes(contentType?: string) {
-  if (!supabaseServiceRoleKey) {
+function addContentType(headers: Record<string, string>, contentType?: string) {
+  if (contentType) {
+    return { ...headers, "Content-Type": contentType };
+  }
+
+  return headers;
+}
+
+function storageHeaderModes(contentType?: string, token?: string) {
+  const modes: Record<string, string>[] = [];
+
+  if (supabaseServiceRoleKey) {
+    const base = addContentType({ apikey: supabaseServiceRoleKey }, contentType);
+
+    if (!isSupabasePlatformKey(supabaseServiceRoleKey)) {
+      modes.push({ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` });
+    } else {
+      modes.push(base);
+      modes.push({ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` });
+    }
+  }
+
+  if (token && supabaseAnonKey) {
+    modes.push(
+      addContentType(
+        {
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${token}`,
+        },
+        contentType
+      )
+    );
+  }
+
+  if (!modes.length) {
     throw new Error(storageAuthHelp("SUPABASE_SECRET_KEY is missing."));
   }
 
-  const base: Record<string, string> = {
-    apikey: supabaseServiceRoleKey,
-  };
-
-  if (contentType) {
-    base["Content-Type"] = contentType;
-  }
-
-  if (!isSupabasePlatformKey(supabaseServiceRoleKey)) {
-    return [{ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` }];
-  }
-
-  return [base, { ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` }];
+  return modes;
 }
 
 async function readErrorDetail(response: Response) {
@@ -113,7 +135,9 @@ function isAuthFailure(status: number, detail: string) {
     lower.includes("invalid api key") ||
     lower.includes("invalid compact jws") ||
     lower.includes("jwt") ||
-    lower.includes("api key")
+    lower.includes("api key") ||
+    lower.includes("row-level security") ||
+    lower.includes("rls")
   );
 }
 
@@ -125,10 +149,16 @@ function formatStorageError(fallback: string, status: number, detail = "") {
   return `${fallback}: ${status}${detail ? ` ${detail}` : ""}`;
 }
 
-async function storageFetch(url: string, init: RequestInit, fallback: string, contentType?: string): Promise<StorageResult> {
+async function storageFetch(
+  url: string,
+  init: RequestInit,
+  fallback: string,
+  contentType?: string,
+  token?: string
+): Promise<StorageResult> {
   const authErrors: string[] = [];
 
-  for (const headers of storageHeaderModes(contentType)) {
+  for (const headers of storageHeaderModes(contentType, token)) {
     const response = await fetch(url, {
       ...init,
       headers: {
@@ -176,17 +206,31 @@ function isBucketAlreadyExists(status: number, detail: string) {
   );
 }
 
-export async function ensurePublicBucket(bucket = getMediaBucket()) {
+export async function ensurePublicBucket(bucket = getMediaBucket(), token?: string) {
   if (!supabaseUrl) {
     throw new Error("Supabase URL is not configured.");
   }
 
   const baseUrl = cleanSupabaseUrl(supabaseUrl);
-  const check = await storageFetch(
-    `${baseUrl}/storage/v1/bucket/${bucket}`,
-    { cache: "no-store" },
-    "Storage bucket check failed"
-  );
+  let check: StorageResult;
+
+  try {
+    check = await storageFetch(
+      `${baseUrl}/storage/v1/bucket/${bucket}`,
+      { cache: "no-store" },
+      "Storage bucket check failed",
+      undefined,
+      token
+    );
+  } catch (error) {
+    if (token && isSupabaseStorageAuthorizationError(error)) {
+      // Authenticated users can upload through Storage RLS even when bucket admin
+      // endpoints reject non-service credentials. Let the object upload prove it.
+      return;
+    }
+
+    throw error;
+  }
 
   if (check.response.ok) {
     return;
@@ -209,7 +253,8 @@ export async function ensurePublicBucket(bucket = getMediaBucket()) {
       }),
     },
     "Storage bucket create failed",
-    "application/json"
+    "application/json",
+    token
   );
 
   if (!create.response.ok && !isBucketAlreadyExists(create.response.status, create.detail)) {
@@ -222,13 +267,15 @@ export async function uploadPublicImageBuffer({
   path,
   contentType,
   bucket = getMediaBucket(),
+  token,
 }: {
   buffer: Buffer;
   path: string;
   contentType: string;
   bucket?: string;
+  token?: string;
 }) {
-  await ensurePublicBucket(bucket);
+  await ensurePublicBucket(bucket, token);
 
   const baseUrl = cleanSupabaseUrl(supabaseUrl);
   const upload = await storageFetch(
@@ -239,7 +286,8 @@ export async function uploadPublicImageBuffer({
       body: buffer,
     },
     "Image upload failed",
-    contentType || "application/octet-stream"
+    contentType || "application/octet-stream",
+    token
   );
 
   if (!upload.response.ok) {
@@ -253,10 +301,12 @@ export async function uploadPublicImage({
   file,
   path,
   bucket = getMediaBucket(),
+  token,
 }: {
   file: File;
   path: string;
   bucket?: string;
+  token?: string;
 }) {
   const buffer = Buffer.from(await file.arrayBuffer());
   return uploadPublicImageBuffer({
@@ -264,6 +314,7 @@ export async function uploadPublicImage({
     path,
     bucket,
     contentType: file.type || "application/octet-stream",
+    token,
   });
 }
 
