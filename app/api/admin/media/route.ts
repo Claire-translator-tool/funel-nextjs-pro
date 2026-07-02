@@ -62,6 +62,7 @@ export async function POST(request: Request) {
     const folder = safeSegment(String(formData.get("folder") || "products"));
     const slug = safeSegment(String(formData.get("slug") || "media"));
     const timestamp = Date.now();
+    const token = auth.admin.token;
 
     try {
       const webp = await compressToWebp(file);
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
         buffer: webp,
         path,
         contentType: "image/webp",
+        token,
       });
 
       return NextResponse.json({ ok: true, url, path });
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
 
       const extension = safeExtension(file);
       const path = `${folder}/${slug}-${timestamp}.${extension}`;
-      const url = await uploadPublicImage({ file, path });
+      const url = await uploadPublicImage({ file, path, token });
       return NextResponse.json({ ok: true, url, path });
     }
   } catch (error) {
