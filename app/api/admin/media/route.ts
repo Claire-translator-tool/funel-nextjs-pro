@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import { NextResponse } from "next/server";
 import { jsonError, requireAdminForApi } from "@/lib/admin-api";
+import { formatAdminOperationError, requireServerAdminKey } from "@/lib/admin-operation";
 import { uploadPublicImage, uploadPublicImageBuffer } from "@/lib/supabase-storage";
 
 export const runtime = "nodejs";
@@ -44,6 +45,8 @@ export async function POST(request: Request) {
   }
 
   try {
+    requireServerAdminKey("Image upload");
+
     const formData = await request.formData();
     const file = formData.get("file");
 
@@ -62,7 +65,6 @@ export async function POST(request: Request) {
     const folder = safeSegment(String(formData.get("folder") || "products"));
     const slug = safeSegment(String(formData.get("slug") || "media"));
     const timestamp = Date.now();
-    const token = auth.admin.token;
 
     try {
       const webp = await compressToWebp(file);
@@ -71,7 +73,6 @@ export async function POST(request: Request) {
         buffer: webp,
         path,
         contentType: "image/webp",
-        token,
       });
 
       return NextResponse.json({ ok: true, url, path });
@@ -82,14 +83,14 @@ export async function POST(request: Request) {
 
       const extension = safeExtension(file);
       const path = `${folder}/${slug}-${timestamp}.${extension}`;
-      const url = await uploadPublicImage({ file, path, token });
+      const url = await uploadPublicImage({ file, path });
       return NextResponse.json({ ok: true, url, path });
     }
   } catch (error) {
     console.error("Media upload failed", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Image upload failed.",
+        error: formatAdminOperationError(error, "Image upload"),
       },
       { status: 500 }
     );
