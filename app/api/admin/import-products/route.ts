@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 import { jsonError, requireAdminForApi } from "@/lib/admin-api";
+import { formatAdminOperationError, requireServerAdminKey } from "@/lib/admin-operation";
 import { importProductsFromZip } from "@/lib/funelImport/importProductsFromZip";
 
 export const runtime = "nodejs";
@@ -20,6 +21,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    requireServerAdminKey("Product import");
+
     const formData = await request.formData();
     const file = formData.get("file");
     const publishMode = String(formData.get("publishMode") || "draft") === "published" ? "published" : "draft";
@@ -63,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Unknown import error.",
+        error: formatAdminOperationError(error, "Product import"),
       },
       { status: 500 }
     );
