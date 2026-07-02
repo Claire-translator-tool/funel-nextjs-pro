@@ -45,7 +45,12 @@ export async function POST(request: NextRequest) {
     await fs.writeFile(zipPath, buffer);
 
     try {
-      const summary = await importProductsFromZip({ zipPath, publishMode });
+      const summary = await importProductsFromZip({
+        zipPath,
+        publishMode,
+        adminToken: auth.admin.token,
+      });
+
       return NextResponse.json({
         ok: summary.failed === 0,
         summary,
@@ -63,4 +68,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-        }
+}
