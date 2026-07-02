@@ -34,8 +34,17 @@ type StorageResult = {
   detail: string;
 };
 
+function cleanKey(value: string) {
+  return value.trim();
+}
+
+function shouldSendBearerForServerKey(key: string) {
+  const value = cleanKey(key);
+  return Boolean(value && (value.startsWith("sb_secret_") || !value.startsWith("sb_publishable_")));
+}
+
 export function getMediaBucket() {
-  return process.env.SUPABASE_STORAGE_BUCKET || defaultBucket;
+  return (process.env.SUPABASE_STORAGE_BUCKET || defaultBucket).trim() || defaultBucket;
 }
 
 export function getPublicStorageUrl(bucket: string, path: string) {
@@ -52,13 +61,21 @@ function looksLikeJwsFailure(detail: string) {
   return lower.includes("invalid compact jws") || lower.includes("jwt");
 }
 
+function looksLikeInvalidKeyFailure(detail: string) {
+  const lower = detail.toLowerCase();
+  return lower.includes("invalid api key") || lower.includes("api key might also be owned by another supabase project");
+}
+
 function storageAuthHelp(lastDetail = "") {
   const suffix = lastDetail ? ` Last response: ${lastDetail}` : "";
+  const invalidKeyHint = looksLikeInvalidKeyFailure(lastDetail)
+    ? " The current Vercel SUPABASE_SECRET_KEY is not accepted by project givzkjmmxmrxcxtlwlys. Replace the existing variable, do not add a duplicate, then redeploy. 当前 Vercel 里的 SUPABASE_SECRET_KEY 没被 givzkjmmxmrxcxtlwlys 项目接受；请编辑已有变量，不要新增重复变量，然后重新部署。"
+    : "";
   const rlsHint = looksLikeRlsFailure(lastDetail)
     ? " If SUPABASE_SECRET_KEY is correct, run the /admin/system one-time Storage RLS SQL. 如果服务端密钥确认正确，请打开 /admin/system 并运行一次 Storage 权限 SQL。"
     : "";
   const jwsHint = looksLikeJwsFailure(lastDetail)
-    ? " A new sb_secret key must not be treated as a browser JWT. This code now sends it as the server apikey only. 新版 sb_secret 不是浏览器 JWT，本代码只会在服务端以 apikey 方式发送。"
+    ? " A new sb_secret key must not be treated as a browser JWT. This code sends it only from the server. 新版 sb_secret 只能在服务端使用，本代码不会把它发到浏览器。"
     : "";
 
   return [
@@ -66,6 +83,7 @@ function storageAuthHelp(lastDetail = "") {
     "Admin image uploads must pass with the server-side SUPABASE_SECRET_KEY for project givzkjmmxmrxcxtlwlys.",
     "Verify Vercel env vars: NEXT_PUBLIC_SUPABASE_URL=https://givzkjmmxmrxcxtlwlys.supabase.co, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, SUPABASE_STORAGE_BUCKET=product-images, then redeploy.",
     "Supabase 图片库授权失败。后台图片上传必须使用 givzkjmmxmrxcxtlwlys 项目的服务端 SUPABASE_SECRET_KEY。请确认 Vercel 环境变量和 product-images 存储桶后重新部署。",
+    invalidKeyHint,
     jwsHint,
     rlsHint,
     suffix,
@@ -89,28 +107,30 @@ function addContentType(headers: Record<string, string>, contentType?: string) {
 
 function storageHeaderModes(contentType?: string, token?: string) {
   const modes: Record<string, string>[] = [];
+  const serverKey = cleanKey(supabaseServiceRoleKey);
+  const publicKey = cleanKey(supabaseAnonKey);
+  const sessionToken = token ? cleanKey(token) : "";
 
-  if (supabaseServiceRoleKey) {
-    const base = addContentType({ apikey: supabaseServiceRoleKey }, contentType);
+  if (serverKey) {
+    const authHeaders: Record<string, string> = { apikey: serverKey };
 
-    if (!isSupabasePlatformKey(supabaseServiceRoleKey)) {
-      modes.push({ ...base, Authorization: `Bearer ${supabaseServiceRoleKey}` });
-    } else {
-      // New sb_secret_* keys are not JWTs. Keep them in apikey only.
-      modes.push(base);
+    if (shouldSendBearerForServerKey(serverKey)) {
+      authHeaders.Authorization = `Bearer ${serverKey}`;
     }
+
+    modes.push(addContentType(authHeaders, contentType));
 
     // When a server key is configured, do not fall back to the user JWT.
     // A bad server key should fail clearly instead of surfacing confusing RLS errors.
     return modes;
   }
 
-  if (token && supabaseAnonKey) {
+  if (sessionToken && publicKey) {
     modes.push(
       addContentType(
         {
-          apikey: supabaseAnonKey,
-          Authorization: `Bearer ${token}`,
+          apikey: publicKey,
+          Authorization: `Bearer ${sessionToken}`,
         },
         contentType
       )
