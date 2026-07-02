@@ -1,6 +1,5 @@
 import {
   cleanSupabaseUrl,
-  isSupabasePlatformKey,
   supabaseAnonKey,
   supabaseServiceRoleKey,
   supabaseUrl,
