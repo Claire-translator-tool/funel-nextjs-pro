@@ -122,8 +122,9 @@ async function toWebpBuffer(filePath: string) {
 export async function processAndUploadProductImages(params: {
   extractRoot: string;
   product: ProductImportRow;
+  adminToken?: string;
 }): Promise<ImportedMedia> {
-  const { extractRoot, product } = params;
+  const { extractRoot, product, adminToken } = params;
   const productDir = await findProductDir(extractRoot, product);
   if (!productDir) {
     return { mainImageUrl: "/images/industrial-water-quality-analyzers.png", uploadedImages: [] };
@@ -155,7 +156,7 @@ export async function processAndUploadProductImages(params: {
       const uploadFile = new File([webpBuffer as unknown as BlobPart], outputName, {
         type: "image/webp",
       });
-      const url = await uploadPublicImage({ file: uploadFile, path: storagePath });
+      const url = await uploadPublicImage({ file: uploadFile, path: storagePath, token: adminToken });
 
       uploadedImages.push({
         type: index === 0 ? "main" : type,
@@ -172,4 +173,4 @@ export async function processAndUploadProductImages(params: {
     mainImageUrl: uploadedImages[0]?.url || "/images/industrial-water-quality-analyzers.png",
     uploadedImages,
   };
-                        }
+}
