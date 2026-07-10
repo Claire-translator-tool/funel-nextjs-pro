@@ -356,7 +356,7 @@ export default async function HomePage() {
               </p>
             </div>
           </div>
-          <div className="grid" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+          <div className="process-grid">
             {process.map(([number, title, text]) => (
               <article className="metric" key={title}>
                 <b>
