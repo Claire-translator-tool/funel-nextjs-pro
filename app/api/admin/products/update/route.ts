@@ -8,6 +8,7 @@ import {
   uploadPublicImageBuffer,
 } from "@/lib/supabase-storage";
 import sharp from "sharp";
+import { revalidatePath } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -92,6 +93,12 @@ export async function POST(request: Request) {
       token,
     });
 
+    revalidatePath("/");
+    revalidatePath("/zh");
+    revalidatePath("/products");
+    revalidatePath(`/products/${payload.slug}`);
+    revalidatePath("/sitemap.xml");
+    revalidatePath("/llms.txt");
     return back(request, "?saved=1");
   } catch (err) {
     console.error("Product update/upload failed", err);
