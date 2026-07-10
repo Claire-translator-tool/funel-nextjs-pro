@@ -2,8 +2,7 @@ import { blockText, getPageContent } from "./page-content";
 import { getProducts, productImage } from "./products/product-data";
 import { getSiteSettings, whatsappLink } from "./site-settings";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 const defaultHero = "Industrial Water Monitoring & Process Automation Solutions";
 const defaultSummary =
@@ -109,6 +108,14 @@ export async function generateMetadata() {
     description:
       home?.seo_description ||
       "Online water quality analyzers, sensors, controllers, automation cabinets and monitoring systems for wastewater treatment, drinking water and industrial process monitoring.",
+    alternates: {
+      canonical: "/",
+      languages: {
+        "en-US": "/",
+        "zh-CN": "/zh",
+        "x-default": "/",
+      },
+    },
   };
 }
 
@@ -130,6 +137,20 @@ export default async function HomePage() {
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map(([question, answer]) => ({
+              "@type": "Question",
+              name: question,
+              acceptedAnswer: { "@type": "Answer", text: answer },
+            })),
+          }),
+        }}
+      />
       <section className="hero" id="home">
         <div className="container">
           <div>
@@ -500,6 +521,13 @@ export default async function HomePage() {
               className="input"
               name="quantity"
               placeholder="Quantity / project size"
+            />
+            <input
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              style={{ position: "absolute", left: "-10000px" }}
             />
             <input type="hidden" name="source_page" value="/" />
             <textarea
