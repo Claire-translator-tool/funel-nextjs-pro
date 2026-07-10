@@ -1,4 +1,5 @@
 import { getProducts, productImage } from "./product-data";
+import ProductMedia from "@/components/ProductMedia";
 
 export const revalidate = 300;
 
@@ -30,7 +31,7 @@ export default async function ProductsPage() {
         <div className="grid three">
           {products.map((product) => (
             <article className="card" key={product.slug}>
-              <img src={productImage(product)} alt={product.name} />
+              <ProductMedia src={productImage(product)} alt={product.name} model={product.model} />
               <div className="card pad">
                 <span className="pill">{product.category || "Water Quality"}</span>
                 <h2>{product.name}</h2>
