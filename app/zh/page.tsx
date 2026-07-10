@@ -1,8 +1,7 @@
 import { getProducts, productImage } from "../products/product-data";
 import { getSiteSettings, whatsappLink } from "../site-settings";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 export const metadata = {
   title: "FUNEL 工业水质在线监测与过程自动化解决方案",
@@ -13,6 +12,7 @@ export const metadata = {
     languages: {
       "en-US": "/",
       "zh-CN": "/zh",
+      "x-default": "/",
     },
   },
 };
@@ -348,6 +348,13 @@ export default async function ChineseHomePage() {
             <input className="input" name="whatsapp" placeholder="WhatsApp / 电话" />
             <input className="input" name="product_interest" placeholder="感兴趣的产品" />
             <input className="input" name="quantity" placeholder="数量 / 项目规模" />
+            <input
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              style={{ position: "absolute", left: "-10000px" }}
+            />
             <input type="hidden" name="source_page" value="/zh" />
             <textarea
               name="message"
