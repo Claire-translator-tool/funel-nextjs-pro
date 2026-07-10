@@ -84,7 +84,7 @@ export async function getProductBySlug(slug: string, options: { includeDraft?: b
   try {
     const data = normalizeProducts(
       await supabaseRest<Product[]>(
-        `products?select=${select}&slug=eq.${encodeURIComponent(slug)}${publishedFilter}&limit=1`,
+        `products?select=${select}&slug=eq.${encodeURIComponent(slug)}${publishedFilter}&order=updated_at.desc&limit=1`,
         options.includeDraft
           ? { cache: "no-store" }
           : { next: { revalidate: 300, tags: ["products", `product:${slug}`] } }
