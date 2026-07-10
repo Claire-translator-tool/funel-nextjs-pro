@@ -1,4 +1,5 @@
 import { getProducts, productImage } from "../products/product-data";
+import ProductMedia from "@/components/ProductMedia";
 import { getSiteSettings, whatsappLink } from "../site-settings";
 
 export const revalidate = 300;
@@ -187,7 +188,7 @@ export default async function ChineseHomePage() {
               const translated = zhProduct(product);
               return (
                 <article className="card" key={product.slug}>
-                  <img src={productImage(product)} alt={translated.name} />
+                  <ProductMedia src={productImage(product)} alt={translated.name} model={product.model} />
                   <div className="card pad">
                     <span className="pill">{translated.category}</span>
                     <h3>{translated.name}</h3>
