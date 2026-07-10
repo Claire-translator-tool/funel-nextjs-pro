@@ -1,5 +1,6 @@
 import { blockText, getPageContent } from "./page-content";
 import { getProducts, productImage } from "./products/product-data";
+import ProductMedia from "@/components/ProductMedia";
 import { getSiteSettings, whatsappLink } from "./site-settings";
 
 export const revalidate = 300;
@@ -252,7 +253,7 @@ export default async function HomePage() {
           <div className="grid three">
             {featured.map((product) => (
               <article className="card" key={product.slug}>
-                <img src={productImage(product)} alt={product.name} />
+                <ProductMedia src={productImage(product)} alt={product.name} model={product.model} />
                 <div className="card pad">
                   <span className="pill">
                     {product.category || "Water Quality"}
