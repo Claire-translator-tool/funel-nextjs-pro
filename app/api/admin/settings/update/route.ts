@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/admin-api";
 import { supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
+import { revalidatePath } from "next/cache";
 
 const url = supabaseUrl;
 const key = supabaseServiceRoleKey;
@@ -52,5 +53,6 @@ export async function POST(request: Request) {
     return back(request, "?error=save_failed");
   }
 
+  revalidatePath("/", "layout");
   return back(request, "?saved=1");
 }

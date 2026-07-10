@@ -8,6 +8,7 @@ import {
   uploadPublicImageBuffer,
 } from "@/lib/supabase-storage";
 import sharp from "sharp";
+import { revalidatePath } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,6 +47,15 @@ async function processImage(file: File, slug: string): Promise<string> {
 
 function back(request: Request, suffix = "") {
   return NextResponse.redirect(new URL(`/admin/products${suffix}`, request.url), { status: 303 });
+}
+
+function refreshProductPages(slug: string) {
+  revalidatePath("/");
+  revalidatePath("/zh");
+  revalidatePath("/products");
+  revalidatePath(`/products/${slug}`);
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/llms.txt");
 }
 
 export async function POST(request: Request) {
@@ -100,6 +110,7 @@ export async function POST(request: Request) {
         token,
       });
 
+      refreshProductPages(slug);
       return back(request, "?saved=1");
     }
 
@@ -110,6 +121,7 @@ export async function POST(request: Request) {
       token,
     });
 
+    refreshProductPages(slug);
     return back(request, "?created=1");
   } catch (err) {
     console.error("Product create/upload failed", err);

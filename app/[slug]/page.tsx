@@ -46,6 +46,13 @@ export async function generateMetadata({ params }: Props) {
   return {
     title: { absolute: page.seo_title || page.title },
     description: page.seo_description || blockText(page.blocks, "focus", page.title),
+    alternates: { canonical: `/${page.slug}` },
+    openGraph: {
+      title: page.seo_title || page.title,
+      description: page.seo_description || blockText(page.blocks, "focus", page.title),
+      url: `/${page.slug}`,
+      type: "website",
+    },
   };
 }
 

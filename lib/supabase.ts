@@ -10,7 +10,9 @@ export const expectedSupabaseRef = readEnv("FUNEL_EXPECTED_SUPABASE_REF") || "gi
 export const expectedSupabaseUrl =
   readEnv("FUNEL_SUPABASE_URL") || `https://${expectedSupabaseRef}.supabase.co`;
 export const configuredSupabaseUrl = readEnv("NEXT_PUBLIC_SUPABASE_URL");
-export const fallbackSupabasePublishableKey = "sb_publishable_BnjPNRICrqXBvo1stdGDJQ_bVJaQ8Jt";
+// Never bake project credentials into source. Local builds use fallback content
+// until Vercel injects the project-scoped environment variables.
+export const fallbackSupabasePublishableKey = "";
 export const supabaseAnonKey =
   readEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ||
   readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||

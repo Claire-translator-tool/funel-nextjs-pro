@@ -118,6 +118,11 @@ export async function GET() {
         bucketList,
         productRead,
       },
+      acquisition: {
+        inquiryDatabaseReady: productRead.ok,
+        emailNotificationsConfigured: Boolean(process.env.RESEND_API_KEY),
+        analyticsEnabled: true,
+      },
       note: "This endpoint is read-only. Use /admin/system after login for the real write/upload probe. 此接口只读；登录后台后打开 /admin/system 可做真实写入和图片上传测试。",
     },
     {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/admin-api";
 import { supabaseApiHeaders, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase";
+import { revalidatePath } from "next/cache";
 
 const url = supabaseUrl;
 const key = supabaseServiceRoleKey;
@@ -55,5 +56,9 @@ export async function POST(request: Request) {
     return back(request, "?error=save_failed");
   }
 
+  const publicPath = slug === "home" ? "/" : slug === "products" ? "/products" : slug === "contact" ? "/contact" : `/${slug}`;
+  revalidatePath(publicPath);
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/llms.txt");
   return back(request, "?saved=1");
 }

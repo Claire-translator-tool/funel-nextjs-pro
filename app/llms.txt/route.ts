@@ -1,8 +1,7 @@
 import { getProducts } from "@/app/products/product-data";
 import { getSiteSettings } from "@/app/site-settings";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 function lineList(items: string[]) {
   return items.map((item) => `- ${item}`).join("\n");
@@ -59,7 +58,7 @@ WhatsApp: ${site.contact_whatsapp}
   return new Response(content, {
     headers: {
       "content-type": "text/plain; charset=utf-8",
-      "cache-control": "no-store",
+      "cache-control": "public, s-maxage=300, stale-while-revalidate=86400",
     },
   });
 }

@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jsonError, requireAdminForApi } from "@/lib/admin-api";
 import { formatAdminOperationError, requireServerAdminKey } from "@/lib/admin-operation";
 import { importProductsFromZip } from "@/lib/funelImport/importProductsFromZip";
+import { revalidatePath } from "next/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,6 +54,10 @@ export async function POST(request: NextRequest) {
         publishMode,
         adminToken: auth.admin.token,
       });
+
+      if (summary.created > 0 || summary.updated > 0) {
+        revalidatePath("/", "layout");
+      }
 
       return NextResponse.json({
         ok: summary.failed === 0,

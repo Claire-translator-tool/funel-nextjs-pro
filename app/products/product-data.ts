@@ -66,7 +66,7 @@ export async function getProducts() {
   try {
     const data = normalizeProducts(
       await supabaseRest<Product[]>(`products?select=${select}&published=eq.true&order=created_at.asc`, {
-        cache: "no-store",
+        next: { revalidate: 300, tags: ["products"] },
       })
     );
     return data.length ? data : fallbackProducts;
@@ -85,7 +85,9 @@ export async function getProductBySlug(slug: string, options: { includeDraft?: b
     const data = normalizeProducts(
       await supabaseRest<Product[]>(
         `products?select=${select}&slug=eq.${encodeURIComponent(slug)}${publishedFilter}&limit=1`,
-        { cache: "no-store" }
+        options.includeDraft
+          ? { cache: "no-store" }
+          : { next: { revalidate: 300, tags: ["products", `product:${slug}`] } }
       )
     );
     return data[0] || findFallbackProductBySlug(slug);

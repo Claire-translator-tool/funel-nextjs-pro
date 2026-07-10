@@ -5,12 +5,22 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 export const metadata = {
   title: "Contact Funel Sensor",
   description: "Request quotation, datasheet, sample or configuration help for Funel Sensor online water quality analyzers.",
+  alternates: {
+    canonical: "/contact",
+  },
+  openGraph: {
+    title: "Contact Funel Sensor",
+    description: "Request quotation, datasheet, sample or configuration help for Funel Sensor online water quality analyzers.",
+    url: "/contact",
+    type: "website",
+  },
 };
 
 export default async function ContactPage({ searchParams }: Props) {
   const [sp, site] = await Promise.all([searchParams, getSiteSettings()]);
   const product = typeof sp.product === "string" ? sp.product : "";
   const sent = sp.sent === "1";
+  const error = typeof sp.error === "string" ? sp.error : "";
 
   return (
     <main className="section">
@@ -25,6 +35,11 @@ export default async function ContactPage({ searchParams }: Props) {
           <p><b>WhatsApp:</b> <a href={whatsappLink(site.contact_whatsapp)}>{site.contact_whatsapp}</a></p>
           {site.contact_wechat ? <p><b>WeChat:</b> {site.contact_wechat}</p> : null}
           {sent ? <div className="notice">Inquiry submitted. We will reply soon.</div> : null}
+          {error ? (
+            <div className="notice error">
+              The form could not be submitted. Please contact us by WhatsApp or email.
+            </div>
+          ) : null}
         </div>
         <form className="form card pad" action="/api/contact" method="post">
           <input className="input" name="name" placeholder="Name *" required />
@@ -34,6 +49,13 @@ export default async function ContactPage({ searchParams }: Props) {
           <input className="input" name="whatsapp" placeholder="WhatsApp / Phone" />
           <input className="input" name="product_interest" placeholder="Product interest" defaultValue={product} />
           <input className="input" name="quantity" placeholder="Quantity / project size" />
+          <input
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: "absolute", left: "-10000px" }}
+          />
           <input type="hidden" name="source_page" value="/contact" />
           <textarea name="message" rows={7} placeholder="Water type, parameters, range, output signal, installation site... *" required></textarea>
           <button className="btn primary" type="submit">Send Inquiry</button>
