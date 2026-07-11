@@ -3,7 +3,8 @@ import { getPublishedPages, pagePath } from "./page-content";
 import { getProducts } from "./products/product-data";
 import { getSiteSettings } from "./site-settings";
 
-export const dynamic = "force-dynamic";\nexport const revalidate = 0;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [site, pages, products] = await Promise.all([
