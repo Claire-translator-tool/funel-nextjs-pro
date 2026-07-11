@@ -472,6 +472,11 @@ img {
   align-items: start;
 }
 
+.split > *,
+.grid > * {
+  min-width: 0;
+}
+
 .form {
   display: grid;
   gap: 14px;
@@ -689,9 +694,44 @@ select {
     flex-direction: column;
   }
 
-  .menu,
-  .actions {
-    flex-wrap: wrap;
+  .nav .menu {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+
+  .nav .menu a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .nav .actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .nav .actions .lang,
+  .nav .actions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .nav .actions .btn {
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .nav .actions .btn.primary {
+    grid-column: 1 / -1;
+  }
+
+  main h1,
+  main h2,
+  main h3 {
+    overflow-wrap: anywhere;
   }
 
   .hero {
@@ -730,6 +770,11 @@ select {
 
   .section {
     padding: 48px 0;
+  }
+
+  .section.soft h1 {
+    font-size: clamp(30px, 9vw, 38px);
+    line-height: 1.22;
   }
 
   .admin-main {
