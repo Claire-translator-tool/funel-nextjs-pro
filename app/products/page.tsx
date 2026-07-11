@@ -1,7 +1,7 @@
 import { getProducts, productImage } from "./product-data";
 import ProductMedia from "@/components/ProductMedia";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export const metadata = {
   title: "Online Water Quality Analyzer Products",
