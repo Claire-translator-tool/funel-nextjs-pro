@@ -1,7 +1,8 @@
 import { getProducts } from "@/app/products/product-data";
 import { getSiteSettings } from "@/app/site-settings";
 
-export const dynamic = "force-dynamic";\nexport const revalidate = 0;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function lineList(items: string[]) {
   return items.map((item) => `- ${item}`).join("\n");
