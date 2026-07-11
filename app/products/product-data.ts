@@ -36,7 +36,7 @@ export async function getProducts() {
   try {
     const data = normalizeProducts(
       await supabaseRest<Product[]>(`products?select=${select}&published=eq.true&order=created_at.asc`, {
-        next: { revalidate: 300, tags: ["products"] },
+        next: { revalidate: 60, tags: ["products"] },
       })
     );
     return data;
@@ -54,10 +54,10 @@ export async function getProductBySlug(slug: string, options: { includeDraft?: b
   try {
     const data = normalizeProducts(
       await supabaseRest<Product[]>(
-        `products?select=${select}&slug=eq.${encodeURIComponent(slug)}${publishedFilter}&order=updated_at.desc&limit=1`,
+        `products?select=${select}&slug=eq.${encodeURIComponent(slug)}${publishedFilter}&order=updated_at.desc&limit=1&offset=0`,
         options.includeDraft
           ? { cache: "no-store" }
-          : { next: { revalidate: 300, tags: ["products", `product:${slug}`] } }
+          : { next: { revalidate: 60, tags: ["products", `product:${slug}`] } }
       )
     );
     return data[0] || null;
