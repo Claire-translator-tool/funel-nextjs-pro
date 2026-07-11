@@ -5,7 +5,7 @@ export const revalidate = 60;
 
 export const metadata = {
   title: "Laboratory Water Quality Analyzers and Portable Meters | FUNEL",
-  description: "Browse FUNEL VX, VN and VI laboratory water quality analyzers for chlorine, nutrients, turbidity, color, metals, wastewater and multiparameter testing.",
+  description: "Browse FUNEL VX, VN and VI laboratory water quality analyzers for water purification, chlorine, nutrients, turbidity, color, metals, wastewater and multiparameter testing.",
   alternates: {
     canonical: "/products",
   },
@@ -16,6 +16,17 @@ export const metadata = {
     type: "website",
   },
 };
+
+const waterPurificationSlugs = new Set([
+  "vn-09-drinking-water-nine-parameter-test-kit",
+  "vn-750-portable-multiparameter-water-quality-analyzer",
+  "vn-3100-portable-turbidity-meter",
+  "vx-3cl-free-total-combined-chlorine-analyzer",
+  "vx-3100-portable-turbidity-meter",
+  "vx-cl03-chlorine-dioxide-chlorate-analyzer",
+  "vx-fma-iron-manganese-aluminum-analyzer",
+  "vx-sp11-pool-water-quality-analyzer",
+]);
 
 const productFamilies = [
   {
@@ -43,10 +54,19 @@ const productFamilies = [
 
 export default async function ProductsPage() {
   const products = await getProducts();
+  const waterPurificationProducts = products.filter((product) => waterPurificationSlugs.has(product.slug));
   const groups = productFamilies.map((family) => ({
     ...family,
     products: products.filter((product) => product.model?.toUpperCase().startsWith(family.prefix)),
   })).filter((family) => family.products.length > 0);
+  const catalogTabs = [
+    {
+      id: "water-purification",
+      label: "Water Purification",
+      products: waterPurificationProducts,
+    },
+    ...groups,
+  ];
 
   return (
     <main className="section">
@@ -57,13 +77,30 @@ export default async function ProductsPage() {
           <p>{products.length} portable and laboratory products organized by VX, VN and VI instrument families.</p>
         </div>
         <nav className="family-tabs" aria-label="Laboratory product families">
-          {groups.map((family) => (
+          {catalogTabs.map((family) => (
             <a href={`#${family.id}`} key={family.id}>
               <b>{family.label}</b>
               <span>{family.products.length} products</span>
             </a>
           ))}
         </nav>
+
+        <section className="product-family purification-collection" id="water-purification">
+          <div className="product-family-heading">
+            <small>Application collection</small>
+            <h2>Water purification testing instruments</h2>
+            <p>Selected laboratory instruments for drinking water, treated water, disinfection control, filtration checks, metals screening and pool-water quality verification.</p>
+          </div>
+          <div className="purification-grid">
+            {waterPurificationProducts.map((product) => (
+              <a className="purification-item" href={`/products/${product.slug}`} key={product.slug}>
+                <span>{product.model || "FUNEL"}</span>
+                <b>{product.name}</b>
+                <small>{product.category || "Laboratory Water Purification"}</small>
+              </a>
+            ))}
+          </div>
+        </section>
 
         {groups.map((family) => (
           <section className="product-family" id={family.id} key={family.id}>
